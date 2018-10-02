@@ -32,7 +32,7 @@ namespace DefaultNamespace
 
             midiSequencer = new MidiSequencer(midiStreamSynthesizer);		
             
-            Metronome.RoutineBeat += DoBeep;
+            Metronome.BeatSubscribe(DoBeep);
         }
 
         IEnumerator DoBeep(int i)
