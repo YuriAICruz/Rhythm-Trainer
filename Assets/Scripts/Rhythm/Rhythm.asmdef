@@ -1,6 +1,9 @@
 {
     "name": "Graphene.Rhythm",
-    "references": [],
+    "references": [
+        "Graphene.Utils",
+        "Graphene.Grid"
+    ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],

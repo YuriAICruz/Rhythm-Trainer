@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace DefaultNamespace
+namespace Graphene.Rhythm
 {
-    [CreateAssetMenuAttribute(menuName = "Rhythm/SongData")]
+    [CreateAssetMenu(menuName = "Rhythm/SongData")]
     public class SongData : ScriptableObject
     {
         [Serializable]

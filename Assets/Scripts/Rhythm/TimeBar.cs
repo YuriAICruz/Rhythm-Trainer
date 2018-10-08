@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace DefaultNamespace
+namespace Graphene.Rhythm
 {
     public class TimeBar : MonoBehaviour
     {

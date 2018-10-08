@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-namespace DefaultNamespace
+namespace Graphene.Rhythm
 {
     [RequireComponent(typeof(AudioSource))]
     public class Beep : MonoBehaviour

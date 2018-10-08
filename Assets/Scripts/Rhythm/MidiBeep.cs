@@ -3,7 +3,7 @@ using CSharpSynth.Sequencer;
 using CSharpSynth.Synthesis;
 using UnityEngine;
 
-namespace DefaultNamespace
+namespace Graphene.Rhythm
 {
     [RequireComponent(typeof(AudioSource))]
     public class MidiBeep : MonoBehaviour
