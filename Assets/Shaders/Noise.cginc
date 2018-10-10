@@ -39,17 +39,6 @@ float2 hash( float2 p ) {  						// rand in [-1,1]
                       w.y);
     
       return lerp(lerp1, lerp2, w.z);
-    /*
-    const float2 C = float2(1.0 / 6.0, 1.0 / 3.0);
-    
-    float3 p = floor(x + dot(x,C.yyy));
-    float3 f = frac(x);
-	f = (3.0-2.0*f);
-	
-	float2 uv = (p.xy + float2(37.0,17.0) * p.z) + f.xy;
-	float2 rg = genNoise(uv);
-	return lerp( rg.x, rg.y, 0);
-	*/
  }
  
  float3 hsv2rgb (in float3 hsv) {

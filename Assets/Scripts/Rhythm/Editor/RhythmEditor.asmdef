@@ -1,0 +1,11 @@
+{
+    "name": "Graphene.RhythmEditor",
+    "references": [
+        "Graphene.Rhythm",
+        "Graphene.Grid"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
+}

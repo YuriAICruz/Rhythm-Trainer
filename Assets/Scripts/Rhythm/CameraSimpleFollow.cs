@@ -7,20 +7,21 @@ namespace Graphene.Rhythm
     {
         public Player Target;
         public Vector3 Offset;
+        public Vector3 BackOffset;
+        public Vector3 Rotation;
+        public Vector3 BackRotation;
+        
         private Quaternion _rotation;
         private Quaternion _backRotation;
-        private float _speed = 5;
-        private Vector3 _backOffset;
+        private float _speed = 2;
 
         private void Start()
         {
             if (Target == null)
                 Target = FindObjectOfType<Player>();
 
-            _rotation = transform.rotation;
-            _backRotation = Quaternion.Euler(new Vector3(transform.eulerAngles.x*0.5f, -transform.eulerAngles.y, transform.eulerAngles.z));
-            
-            _backOffset = new Vector3(-Offset.x, Offset.y, Offset.z);
+            _rotation = Quaternion.Euler(Rotation);
+            _backRotation = Quaternion.Euler(BackRotation);
         }
 
         private void Update()
@@ -28,8 +29,8 @@ namespace Graphene.Rhythm
             Vector3 dir;
             if (Target.Climbing)
             {
-                transform.position = Vector3.Lerp(transform.position, Target.transform.position + _backOffset, Time.deltaTime*_speed);
-                dir = transform.position- Target.transform.position + _backOffset;
+                transform.position = Vector3.Lerp(transform.position, Target.transform.position + BackOffset, Time.deltaTime*_speed);
+                dir = transform.position- Target.transform.position + BackOffset;
                 transform.rotation = Quaternion.Lerp(transform.rotation, _backRotation, Time.deltaTime*_speed);
             }
             else

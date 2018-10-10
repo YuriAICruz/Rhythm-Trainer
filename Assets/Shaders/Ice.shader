@@ -36,8 +36,7 @@
             
             p = frac(float2(262144, 32768)*n); 
             
-            return sin( p*6.2831853)*.45 + .5; 
-            
+            return sin( p*6.2831853)*.45 + .5;
         }
 		
 		float Voronoi(in float2 x){

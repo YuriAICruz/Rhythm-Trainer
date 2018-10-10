@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using Graphene.Grid;
-using Packages.Grid.Graphene.Grid;
-using UnityEditorInternal;
+﻿using Graphene.Grid;
 using UnityEngine;
 
 namespace Graphene.Rhythm.Game
@@ -100,7 +97,9 @@ namespace Graphene.Rhythm.Game
 
             _gr = gr;
 
-            _grid.GenMesh(_grid.Grid.SelectRegion(_gr, ViewArea, false));
+            var advGr = _grid.Grid.GetPos(_gr.x+(int)(ViewArea/2), _gr.y);
+
+            _grid.GenMesh(_grid.Grid.SelectRegion(advGr, ViewArea, false));
         }
 
 
@@ -113,7 +112,7 @@ namespace Graphene.Rhythm.Game
 
             _direction = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
 
-            _direction.x *= Climbing ? -1 : 1;
+            _direction.x *= -1;
         }
 
         private void Beat(int index)
