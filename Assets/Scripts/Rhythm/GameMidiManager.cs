@@ -26,9 +26,8 @@ namespace Graphene.Rhythm
         private MidiSequencer midiSequencer;
         private StreamSynthesizer midiStreamSynthesizer;
         private Metronome _metronome;
-        
-        [SerializeField]
-        private int _pianoNote;
+
+        [SerializeField] private int _pianoNote;
 
         void Awake()
         {
@@ -50,7 +49,9 @@ namespace Graphene.Rhythm
             if (i != 0) return;
 
             _metronome.Beat -= StartMusic;
-            StartCoroutine(ProceduralMusic());
+
+            LoadSong(midiFilePath);
+            //StartCoroutine(ProceduralMusic());
         }
 
 
@@ -67,15 +68,7 @@ namespace Graphene.Rhythm
 
         private void Update()
         {
-            if (!midiSequencer.isPlaying)
-            {
-                //if (!GetComponent<AudioSource>().isPlaying)
-                if (ShouldPlayFile)
-                {
-                    LoadSong(midiFilePath);
-                }
-            }
-            else if (!ShouldPlayFile)
+            if (midiSequencer.isPlaying && !ShouldPlayFile)
             {
                 midiSequencer.Stop(true);
             }
@@ -92,14 +85,14 @@ namespace Graphene.Rhythm
             {
                 if (loop % 5 == 0)
                     StartCoroutine(DoBeep(0, 60 + loop / 5, beat * 5, 200, 102));
-                
-                StartCoroutine(DoBeep(0, (int) (_pianoNote + Mathf.Sin(t*_metronome.Bpm)*6), beat, 300, midiInstrument));
-                
-                yield return new WaitForSeconds(beat/2);
-                
-                StartCoroutine(DoBeep(0, (int) (_pianoNote+1 + Mathf.Sin(t*_metronome.Bpm)*6), beat, 300, midiInstrument));
-                
-                yield return new WaitForSeconds(beat/2);
+
+                StartCoroutine(DoBeep(0, (int) (_pianoNote + Mathf.Sin(t * _metronome.Bpm) * 6), beat, 300, midiInstrument));
+
+                yield return new WaitForSeconds(beat / 2);
+
+                StartCoroutine(DoBeep(0, (int) (_pianoNote + 1 + Mathf.Sin(t * _metronome.Bpm) * 6), beat, 300, midiInstrument));
+
+                yield return new WaitForSeconds(beat / 2);
 
                 loop++;
                 if ((int) (loop / 5) > 4)

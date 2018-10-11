@@ -147,7 +147,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Tempo: 4
-  Bpm: 80
+  Bpm: 120
 --- !u!4 &222850536
 Transform:
   m_ObjectHideFlags: 0
@@ -220,8 +220,9 @@ MonoBehaviour:
   bufferSize: 1024
   midiNote: 90
   midiNoteVolume: 200
-  midiInstrument: 118
-  ShouldPlayFile: 0
+  midiInstrument: 1
+  ShouldPlayFile: 1
+  _pianoNote: 0
 --- !u!82 &222850541
 AudioSource:
   m_ObjectHideFlags: 0
