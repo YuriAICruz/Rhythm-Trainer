@@ -7,17 +7,18 @@ namespace Graphene.Rhythm
 {
     public class Metronome : MonoBehaviour
     {
-        public static int Tempo = 4;
-        public static int Bpm = 60;
+        public int Tempo = 4;
+        public int Bpm = 60;
 
-        public static float ElapsedTime { get; private set; }
+        public float ElapsedTime { get; private set; }
 
         public delegate IEnumerator RoutineAction(int i);
 
-        public static event Action<int> Beat;
-        static List<RoutineAction> _routineBeat = new List<RoutineAction>();
+        public event Action<int> Beat;
+        public event Action<int> BeatEvent;
+        List<RoutineAction> _routineBeat = new List<RoutineAction>();
 
-        public static void BeatSubscribe(RoutineAction action)
+        public void BeatSubscribe(RoutineAction action)
         {
             _routineBeat.Add(action);
         }
@@ -50,6 +51,11 @@ namespace Graphene.Rhythm
                 }
                 i = (i + 1) % Tempo;
             }
+        }
+
+        public void PlayEvent(int i)
+        {
+            BeatEvent?.Invoke(i);
         }
     }
 }

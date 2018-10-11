@@ -12,6 +12,7 @@ namespace Graphene.Rhythm
         public int samplerate = 44100;
         public float frequency = 440;
         private AudioClip[] _beeps;
+        private Metronome _metronome;
 
         private void Start()
         {
@@ -28,7 +29,8 @@ namespace Graphene.Rhythm
                 AudioClip.Create("", 1000, 1, samplerate, true, d => OnAudioRead(d, 7), OnAudioSetPosition)
             };
 
-            Metronome.Beat += DoBeep;
+            _metronome = FindObjectOfType<Metronome>();
+            _metronome.Beat += DoBeep;
         }
 
         private void OnAudioSetPosition(int i)

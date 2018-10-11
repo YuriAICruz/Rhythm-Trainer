@@ -22,7 +22,8 @@ namespace Graphene.Rhythm
         private float gain = 1f;
         private MidiSequencer midiSequencer;
         private StreamSynthesizer midiStreamSynthesizer;
-        
+        private Metronome _metronome;
+
         void Awake()
         {
             midiStreamSynthesizer = new StreamSynthesizer(44100, 2, bufferSize, 40);
@@ -32,7 +33,14 @@ namespace Graphene.Rhythm
 
             midiSequencer = new MidiSequencer(midiStreamSynthesizer);		
             
-            Metronome.BeatSubscribe(DoBeep);
+            _metronome = FindObjectOfType<Metronome>();
+            _metronome.BeatSubscribe(DoBeep);
+            _metronome.BeatEvent += Play;
+        }
+
+        private void Play(int i)
+        {
+            StartCoroutine(DoBeep(i+7));
         }
 
         IEnumerator DoBeep(int i)

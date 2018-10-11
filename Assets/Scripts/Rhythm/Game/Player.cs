@@ -5,10 +5,10 @@ namespace Graphene.Rhythm.Game
 {
     public class Player : MonoBehaviour
     {
-        public float Speed = 3;
         public float TurnSpeed;
         public int ViewArea = 3;
         public bool Climbing;
+        public LayerMask Mask;
 
         private IGridInfo _gr;
         private GridSystem _grid;
@@ -18,16 +18,19 @@ namespace Graphene.Rhythm.Game
         private Vector2 _direction;
 
         private Transform camera;
-        private float _iniSpeed;
+
+        private Metronome _metronome;
+        private int _iniBpm;
+        private float _acceleration;
+
+        private int count;
 
 
         private void Start()
         {
             _grid = FindObjectOfType<GridSystem>();
-            
-            _grid.gameObject.GetComponent<TrailSystem>().SetTarget(transform);
 
-            _iniSpeed = Speed;
+            _grid.gameObject.GetComponent<CoinGenerator>().SetTarget(transform);
 
             camera = Camera.main.transform;
 
@@ -47,32 +50,54 @@ namespace Graphene.Rhythm.Game
 
             _grid.GenMesh(_grid.Grid.SelectRegion(_gr, ViewArea, false));
 
-            Metronome.Beat += Beat;
+            _metronome = FindObjectOfType<Metronome>();
+            _metronome.Beat += Beat;
+            _iniBpm = _metronome.Bpm;
         }
 
 
         private void Update()
         {
-            _position.x += Speed * Time.deltaTime;
+            _position.x += _metronome.Bpm / 6f * Time.deltaTime;
             _position.z += _direction.x * TurnSpeed * Time.deltaTime;
             _position.y = GetY(_position);
+            
             CheckGrid();
+            GrabCoin();
             transform.position = _position;
 
             LookDir();
 
             if (Climbing)
             {
-                Speed = _iniSpeed;
+                //_metronome.Bpm = _iniBpm + (int)(_acceleration);
+                _acceleration = Mathf.Max(0, _acceleration - Time.deltaTime);
             }
             else
             {
-                Speed += Time.deltaTime;
+                _acceleration += Time.deltaTime;
+                //_metronome.Bpm = Mathf.Min(_iniBpm*2, _iniBpm + (int)(_acceleration));
             }
 
             _lastPosition = _position;
 
             GetInput();
+        }
+
+        private void GrabCoin()
+        {
+            var hits = Physics.SphereCastAll(_position, 1, transform.forward, 1, Mask);
+
+            foreach (var hit in hits)
+            {
+                hit.transform.gameObject.SetActive(false);
+                CoinCollected();
+            }
+        }
+
+        private void CoinCollected()
+        {
+            _metronome.PlayEvent(0);
         }
 
         private void LookDir()
@@ -98,8 +123,11 @@ namespace Graphene.Rhythm.Game
             if (gr.x == _gr.x && gr.y == _gr.y) return;
 
             _gr = gr;
+            count++;
+            if(count < 2) return;
+            count = 0;
 
-            var advGr = _grid.Grid.GetPos(_gr.x+(int)(ViewArea/2), _gr.y);
+            var advGr = _grid.Grid.GetPos(_gr.x + (int) (ViewArea / 2), _gr.y);
 
             _grid.GenMesh(_grid.Grid.SelectRegion(advGr, ViewArea, false));
         }
