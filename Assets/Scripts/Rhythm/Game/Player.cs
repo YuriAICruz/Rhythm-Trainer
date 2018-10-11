@@ -24,6 +24,8 @@ namespace Graphene.Rhythm.Game
         private void Start()
         {
             _grid = FindObjectOfType<GridSystem>();
+            
+            _grid.gameObject.GetComponent<TrailSystem>().SetTarget(transform);
 
             _iniSpeed = Speed;
 
@@ -53,7 +55,7 @@ namespace Graphene.Rhythm.Game
         {
             _position.x += Speed * Time.deltaTime;
             _position.z += _direction.x * TurnSpeed * Time.deltaTime;
-            _position.y = GetY(_position.x);
+            _position.y = GetY(_position);
             CheckGrid();
             transform.position = _position;
 

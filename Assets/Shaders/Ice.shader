@@ -98,18 +98,16 @@
             float frag = voronoi*0.9+0.1;//round((pow(voronoi,0.2)));
 			float nrm = voronoi;
 			
-			float3 color;
+			float3 color = float3(1,1,1);
 			float3 normal;
 			
-			color = frag;
+			color.r = IN.worldPos.x;
 			
-			normal.b = 1;
-			normal.r = voronoi;
-			normal.g = -voronoi;
 			
-			o.Albedo = _Color*voronoi;//color * _Color;
 			
-			o.Normal = normal;
+						
+			o.Albedo = _Color*voronoi*color;//color * _Color;
+			
 			o.Metallic = voronoi*_Metallic;
 			o.Smoothness = voronoi*_Glossiness;
 			o.Alpha = 1;
