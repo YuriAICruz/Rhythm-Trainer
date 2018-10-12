@@ -5,6 +5,7 @@
 		_Metallic ("Metallic", Range(0,1)) = 0.0
 		_NoiseSize ("Noise Size", float) = 1.0
 		_Distance ("_Distance", Range(0,1)) = 1.0
+		_Height("_Height", float) = 10
 	}
 	SubShader {
 		Tags { "RenderType"="Opaque" }
@@ -23,12 +24,14 @@
 			float2 uv_MainTex;
 			float4 screenPos;
             float3 worldPos;
+            float3 localPos;
 		};
 
         half _Distance;
         half _NoiseSize;
 		half _Glossiness;
 		half _Metallic;
+		half _Height;
 		fixed4 _Color;
 		
 		float2 hash2(float2 p) {
@@ -101,12 +104,20 @@
 			float3 color = float3(1,1,1);
 			float3 normal;
 			
-			color.r = IN.worldPos.x;
+			color = _Color*voronoi;
+			float h = (IN.worldPos.y) / _Height;
+			h = (h+1)/2;
+			
+			color.rgb = 
+			    _Color*voronoi * (floor(h*4+3)) % 4 / 4 + 
+			    float3(0.0,0.4,1.0) * (floor(h*4+1)) % 4 / 4 + 
+			    float3(0.1,1.0,0.1) * (floor(h*4+2)) % 4 / 4  + 
+			    float3(1.0,1.0,1.0) * floor(h*4) / 4;
 			
 			
 			
 						
-			o.Albedo = _Color*voronoi*color;//color * _Color;
+			o.Albedo = color;//color * _Color;
 			
 			o.Metallic = voronoi*_Metallic;
 			o.Smoothness = voronoi*_Glossiness;

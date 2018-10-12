@@ -80,7 +80,7 @@ namespace Graphene.Rhythm
             for (int i = 0; i < pos.Length; i++)
             {
                 var outPos = _trail.CoinMath(pos[i]);
-                var split = Mathf.Abs(outPos[0].z - outPos[1].z) > 0.1f;
+                var split = Mathf.Abs(outPos[0].z - outPos[1].z) > 1f;
 
                 outPos[0].y = _infGrid.YGraph(outPos[0]);
                 _coins[_currentCoin + i * 2].transform.position = outPos[0];
