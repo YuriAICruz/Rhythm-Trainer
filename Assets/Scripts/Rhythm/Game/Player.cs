@@ -124,10 +124,10 @@ namespace Graphene.Rhythm.Game
 
             _gr = gr;
             count++;
-            if(count < 2) return;
+            if(count < 3) return;
             count = 0;
 
-            var advGr = _grid.Grid.GetPos(_gr.x + (int) (ViewArea / 2), _gr.y);
+            var advGr = _grid.Grid.GetPos(_gr.x + (int) (ViewArea-1), _gr.y);
 
             _grid.GenMesh(_grid.Grid.SelectRegion(advGr, ViewArea, false));
         }

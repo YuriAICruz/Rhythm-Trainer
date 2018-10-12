@@ -34,6 +34,8 @@
 		half _Height;
 		fixed4 _Color;
 		
+        const float PI = 3.14159;
+		
 		float2 hash2(float2 p) {
             float n = sin(dot(p, float2(41, 289)));     
             
@@ -101,22 +103,26 @@
             float frag = voronoi*0.9+0.1;//round((pow(voronoi,0.2)));
 			float nrm = voronoi;
 			
+			float noise = genNoise(IN.worldPos,20);
+			noise = noise *0.2 + 0.8;
+			
 			float3 color = float3(1,1,1);
 			float3 normal;
-			
-			color = _Color*voronoi;
-			float h = (IN.worldPos.y) / _Height;
-			h = (h+1)/2;
-			
-			color.rgb = 
-			    _Color*voronoi * (floor(h*4+3)) % 4 / 4 + 
-			    float3(0.0,0.4,1.0) * (floor(h*4+1)) % 4 / 4 + 
-			    float3(0.1,1.0,0.1) * (floor(h*4+2)) % 4 / 4  + 
-			    float3(1.0,1.0,1.0) * floor(h*4) / 4;
-			
-			
-			
 						
+			float3 masks;
+			
+			float h = IN.worldPos.y/_Height;
+            h = saturate((h+1)/2);
+			
+			masks.r = lerp(0, 1, max(0, (h)       %1 -0.50) * 3);
+			masks.g = lerp(0, 1, max(0, (h + 0.33)%1 -0.40) * 3);
+			masks.b = lerp(0, 1, saturate((h + 0.90)%1 -0.90) * 20);
+			
+			color =   
+			    masks.r * float3(0.7,0.8,0.8) * noise +  
+			    masks.g * float3(0.0,0.6,0.1) +
+			    masks.b * voronoi * _Color;
+			
 			o.Albedo = color;//color * _Color;
 			
 			o.Metallic = voronoi*_Metallic;

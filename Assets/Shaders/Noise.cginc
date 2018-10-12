@@ -22,8 +22,8 @@ float2 hash( float2 p ) {  						// rand in [-1,1]
   return -1.0 + 2.0 * frac(sin(p) * 43758.5453123 );
 }
  
- float genNoise(float3 p){
-      float3 p0 = floor(p);
+ float genNoise(float3 p, float size){
+      float3 p0 = floor(p*size);
       float3 d = frac(p);
     
       float3 w = d * d * (3.0 - 2.0 * d);
