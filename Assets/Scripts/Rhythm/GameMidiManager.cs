@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using CSharpSynth.Sequencer;
 using CSharpSynth.Synthesis;
+using Graphene.Rhythm.Presentation;
 using UnityEngine;
 
 namespace Graphene.Rhythm
@@ -28,6 +29,11 @@ namespace Graphene.Rhythm
         private Metronome _metronome;
 
         [SerializeField] private int _pianoNote;
+        
+        [SerializeField] private int[] _beetInstrument;
+        [SerializeField] private int[] _beepNote;
+        [SerializeField] private float[] _beepDuration;
+        private MenuManager _menuManager;
 
         void Awake()
         {
@@ -38,18 +44,34 @@ namespace Graphene.Rhythm
 
             midiSequencer = new MidiSequencer(midiStreamSynthesizer);
 
+            ShouldPlayFile = false;
+            
+            _menuManager = FindObjectOfType<MenuManager>();
+            _menuManager.OnStartGame += StartMetronome;
+            _menuManager.OnGameOver += StopMetronome;
+
             _metronome = FindObjectOfType<Metronome>();
             _metronome.Beat += StartMusic;
-            //_metronome.BeatSubscribe(DoBeep);
+            _metronome.BeatSubscribe(DoBeep);
             _metronome.BeatEvent += Play;
+        }
+
+        private void StopMetronome()
+        {
+            ShouldPlayFile = false;
+        }
+
+        private void StartMetronome()
+        {
+            ShouldPlayFile = true;
         }
 
         private void StartMusic(int i)
         {
             if (i != 0) return;
 
-            _metronome.Beat -= StartMusic;
-
+            if (midiSequencer.isPlaying || !ShouldPlayFile) return;
+            
             LoadSong(midiFilePath);
             //StartCoroutine(ProceduralMusic());
         }
@@ -63,7 +85,7 @@ namespace Graphene.Rhythm
 
         private void Play(int i)
         {
-            StartCoroutine(DoBeep(i + 7));
+            StartCoroutine(DoBeep(0, midiNote + i, 0.4f, midiNoteVolume, midiInstrument));
         }
 
         private void Update()
@@ -104,9 +126,9 @@ namespace Graphene.Rhythm
 
         IEnumerator DoBeep(int i)
         {
-            midiStreamSynthesizer.NoteOn(0, midiNote + i, midiNoteVolume, midiInstrument);
-            yield return new WaitForSeconds(0.4f);
-            midiStreamSynthesizer.NoteOff(0, midiNote + i);
+            midiStreamSynthesizer.NoteOn(0, _beepNote[i], midiNoteVolume, _beetInstrument[i]);
+            yield return new WaitForSeconds(_beepDuration[i]);
+            midiStreamSynthesizer.NoteOff(0, _beepNote[i]);
         }
 
         IEnumerator DoBeep(int channel, int note, float duration, int volume, int instrument)

@@ -7,7 +7,7 @@ namespace Graphene.Rhythm.Presentation
 {
     public class MenuManager : MonoBehaviour
     {
-        public event Action OnStartGame, OnRestartGame;
+        public event Action OnStartGame, OnRestartGame, OnGameOver;
 
         public CanvasGroupView MainMenu;
         public CanvasGroupView GameOver;
@@ -16,6 +16,7 @@ namespace Graphene.Rhythm.Presentation
         public Text[] Coins;
 
         int _coins;
+        private bool _gameover;
 
         private void Start()
         {
@@ -27,15 +28,28 @@ namespace Graphene.Rhythm.Presentation
 
         public void EndGame()
         {
+            OnGameOver?.Invoke();
+            
             MainMenu.Hide();
             GameOver.Hide();
             ScoreScreen.Show();
 
-            Invoke(nameof(RestartScreen), 3);
+            _gameover = true;
+        }
+
+        private void Update()
+        {
+            if (!_gameover) return;
+            
+            if (Input.GetMouseButtonDown(0))
+            {
+                RestartScreen();
+            }
         }
 
         void RestartScreen()
         {
+            _gameover = false;
             MainMenu.Hide();
             GameOver.Show();
             ScoreScreen.Hide();
@@ -51,22 +65,26 @@ namespace Graphene.Rhythm.Presentation
 
         public void RestartGame()
         {
+            _gameover = false;
+            
             _coins = 0;
             MainMenu.Hide();
             GameOver.Hide();
             ScoreScreen.Hide();
 
-            OnStartGame?.Invoke();
+            OnRestartGame?.Invoke();
         }
 
         public void StartGame()
         {
+            _gameover = false;
+            
             UpdateCoins();
             MainMenu.Hide();
             GameOver.Hide();
             ScoreScreen.Hide();
 
-            OnRestartGame?.Invoke();
+            OnStartGame?.Invoke();
         }
 
         public void CollectCoin(int value)

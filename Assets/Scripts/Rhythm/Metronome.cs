@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Graphene.Rhythm.Presentation;
 using UnityEngine;
 
 namespace Graphene.Rhythm
@@ -10,6 +11,8 @@ namespace Graphene.Rhythm
         public int Tempo = 4;
         public int Bpm = 60;
 
+        private uint _totalBeats;
+
         public float ElapsedTime { get; private set; }
 
         public delegate IEnumerator RoutineAction(int i);
@@ -17,6 +20,8 @@ namespace Graphene.Rhythm
         public event Action<int> Beat;
         public event Action<int> BeatEvent;
         List<RoutineAction> _routineBeat = new List<RoutineAction>();
+        private MenuManager _menuManager;
+        private bool _canPlay;
 
         public void BeatSubscribe(RoutineAction action)
         {
@@ -25,15 +30,28 @@ namespace Graphene.Rhythm
 
         private void Start()
         {
+            _menuManager = FindObjectOfType<MenuManager>();
+            _menuManager.OnStartGame += StartMetronome;
+            _menuManager.OnGameOver += StopMetronome;
             StartCoroutine(Counter());
+        }
+
+        private void StartMetronome()
+        {
+            _canPlay = true;
+        }
+
+        private void StopMetronome()
+        {
+            _canPlay = false;
         }
 
         private void Update()
         {
+            if (!_canPlay) return;
+
             ElapsedTime += Time.deltaTime;
         }
-
-        private uint _totalBeats;
 
         IEnumerator Counter()
         {
@@ -41,14 +59,27 @@ namespace Graphene.Rhythm
             ElapsedTime = 0;
             while (true)
             {
+                if (!_canPlay)
+                {
+                    i = 0;
+                    _totalBeats = 0;
+                    ElapsedTime = 0;
+                    yield return null;
+                    continue;
+                }
+
                 yield return new WaitForSeconds(60 / (float) Bpm);
+                
                 _totalBeats++;
                 ElapsedTime = _totalBeats * (60 / (float) Bpm);
-                if (Beat != null) Beat(i);
+                
+                Beat?.Invoke(i);
+                
                 foreach (var action in _routineBeat)
                 {
                     StartCoroutine(action(i));
                 }
+                
                 i = (i + 1) % Tempo;
             }
         }
@@ -56,6 +87,12 @@ namespace Graphene.Rhythm
         public void PlayEvent(int i)
         {
             BeatEvent?.Invoke(i);
+        }
+
+        public float GetLapse()
+        {
+            var bps = Bpm / 60f;
+            return ElapsedTime * bps - (int) (ElapsedTime * bps);
         }
     }
 }

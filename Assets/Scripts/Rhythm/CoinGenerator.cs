@@ -1,4 +1,5 @@
 ﻿using Graphene.Grid;
+using Graphene.Rhythm.Presentation;
 using UnityEngine;
 
 namespace Graphene.Rhythm
@@ -19,12 +20,16 @@ namespace Graphene.Rhythm
         private bool _baseLineGenerated;
 
         private readonly int _mul = 6;
+        private MenuManager _menuManager;
 
         private void Awake()
         {
             _coins = new GameObject[CoinPool * _mul];
 
             var go = Resources.Load<GameObject>("Pool/Coin");
+            
+            _menuManager = FindObjectOfType<MenuManager>();
+            _menuManager.OnRestartGame += RestartGame;
 
             for (int i = 0; i < CoinPool * _mul; i++)
             {
@@ -67,6 +72,11 @@ namespace Graphene.Rhythm
             DrawCoins(new Vector3(_lastPos * Space, 0, _target.position.z));
         }
 
+        private void RestartGame()
+        {
+            _lastPos = 0;
+        }
+
 
         void DrawCoins(Vector3 p)
         {
@@ -80,7 +90,7 @@ namespace Graphene.Rhythm
             for (int i = 0; i < pos.Length; i++)
             {
                 var outPos = _trail.CoinMath(pos[i]);
-                var split = Mathf.Abs(outPos[0].z - outPos[1].z) > 1f;
+                var split = Mathf.Abs(outPos[0].z - outPos[1].z) > 3f;
 
                 outPos[0].y = _infGrid.YGraph(outPos[0]);
                 _coins[_currentCoin + i * 2].transform.position = outPos[0];
