@@ -1,5 +1,7 @@
 ﻿using Graphene.Grid;
+using Graphene.Rhythm.Presentation;
 using UnityEngine;
+using UnityEngine.Windows.Speech;
 
 namespace Graphene.Rhythm.Game
 {
@@ -8,7 +10,8 @@ namespace Graphene.Rhythm.Game
         public float TurnSpeed;
         public int ViewArea = 3;
         public bool Climbing;
-        public LayerMask Mask;
+        private LayerMask _coinMask;
+        private LayerMask _obstacleMask;
 
         private IGridInfo _gr;
         private GridSystem _grid;
@@ -24,13 +27,25 @@ namespace Graphene.Rhythm.Game
         private float _acceleration;
 
         private int count;
+        private MenuManager _menuManager;
+        private bool _playing;
+        private Vector3 _iniPos;
 
 
         private void Start()
         {
             _grid = FindObjectOfType<GridSystem>();
+            _menuManager = FindObjectOfType<MenuManager>();
+            _menuManager.OnStartGame += StartGame;
+            _menuManager.OnRestartGame += RestartGame;
+
+            _coinMask = (LayerMask.GetMask("Coin"));
+            _obstacleMask = (LayerMask.GetMask("Obstacle"));
+
+            _iniPos = transform.position;
 
             _grid.gameObject.GetComponent<CoinGenerator>().SetTarget(transform);
+            _grid.gameObject.GetComponent<ObstaclesGenerator>().SetTarget(transform);
 
             camera = Camera.main.transform;
 
@@ -55,15 +70,28 @@ namespace Graphene.Rhythm.Game
             _iniBpm = _metronome.Bpm;
         }
 
+        private void StartGame()
+        {
+            _playing = true;
+        }
+        
+        private void RestartGame()
+        {
+            transform.position = _iniPos;
+            StartGame();
+        }
 
         private void Update()
         {
+            if (!_playing) return;
+
             _position.x += _metronome.Bpm / 6f * Time.deltaTime;
             _position.z += _direction.x * TurnSpeed * Time.deltaTime;
             _position.y = GetY(_position);
-            
+
             CheckGrid();
             GrabCoin();
+            CheckCollision();
             transform.position = _position;
 
             LookDir();
@@ -86,7 +114,7 @@ namespace Graphene.Rhythm.Game
 
         private void GrabCoin()
         {
-            var hits = Physics.SphereCastAll(_position, 1, transform.forward, 1, Mask);
+            var hits = Physics.SphereCastAll(_position, 1, transform.forward, 1, _coinMask);
 
             foreach (var hit in hits)
             {
@@ -95,8 +123,33 @@ namespace Graphene.Rhythm.Game
             }
         }
 
+        private void CheckCollision()
+        {
+            var hits = Physics.SphereCastAll(_position, 1, transform.forward, 1, _obstacleMask);
+
+                Debug.Log(hits.Length);
+            foreach (var hit in hits)
+            {
+                Die();
+                return;
+            }
+        }
+
+        private void Die()
+        {
+            _playing = false;
+
+            Invoke(nameof(EndGame), 1);
+        }
+
+        private void EndGame()
+        {
+            _menuManager.EndGame();
+        }
+
         private void CoinCollected()
         {
+            _menuManager.CollectCoin(1);
             _metronome.PlayEvent(0);
         }
 
@@ -124,10 +177,10 @@ namespace Graphene.Rhythm.Game
 
             _gr = gr;
             count++;
-            if(count < 3) return;
+            if (count < 3) return;
             count = 0;
 
-            var advGr = _grid.Grid.GetPos(_gr.x + (int) (ViewArea-1), _gr.y);
+            var advGr = _grid.Grid.GetPos(_gr.x + (int) (ViewArea - 1), _gr.y);
 
             _grid.GenMesh(_grid.Grid.SelectRegion(advGr, ViewArea, false));
         }

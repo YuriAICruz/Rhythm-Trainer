@@ -4,3 +4,6 @@
 [submodule "Packages/Grid"]
 	path = Packages/Grid
 	url = git@github.com:YuriAICruz/Unity-Grid.git
+[submodule "Packages/UI"]
+	path = Packages/UI
+	url = git@github.com:YuriAICruz/Unity-UI-Generics.git
