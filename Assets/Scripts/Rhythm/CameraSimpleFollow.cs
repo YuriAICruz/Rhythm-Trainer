@@ -11,7 +11,7 @@ namespace Graphene.Rhythm
         public Vector3 Offset;
         //public Vector3 BackOffset;
 
-        private float _speed = 2;
+        private float _speed = 8;
         private MenuManager _menuManager;
         private Vector3 _iniPos;
         private Quaternion _iniRot;
@@ -37,12 +37,14 @@ namespace Graphene.Rhythm
 
         private void Update()
         {
-            transform.position = Vector3.Lerp(transform.position, Target.transform.TransformPoint(Offset), Time.deltaTime * _speed);
+            transform.position = Vector3.Lerp(transform.position, Target.transform.position + Offset, Time.deltaTime * _speed);
+            
             var dir = transform.position - Target.transform.position + Offset;
 
             dir.z = 0;
             dir.Normalize();
-            transform.rotation = Quaternion.LookRotation(-dir, Vector3.up);
+            
+            //transform.rotation = Quaternion.LookRotation(-dir, Vector3.up);
         }
     }
 }

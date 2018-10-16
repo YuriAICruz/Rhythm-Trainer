@@ -24,7 +24,7 @@ namespace Graphene.Rhythm.Presentation
 
         private IEnumerator Fade()
         {
-            var dur = _metronome.Bpm/60f/(float)_metronome.Tempo;
+            var dur = _metronome.Bpm/60f;
             var t = 0f;
             while (t<=dur)
             {

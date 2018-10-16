@@ -9,9 +9,9 @@ namespace Graphene.Rhythm
     public class Metronome : MonoBehaviour
     {
         public int Tempo = 4;
-        public int Bpm = 60;
+        public uint Bpm = 60;
 
-        private uint _totalBeats;
+        public uint TotalBeats;
 
         public float ElapsedTime { get; private set; }
 
@@ -62,24 +62,24 @@ namespace Graphene.Rhythm
                 if (!_canPlay)
                 {
                     i = 0;
-                    _totalBeats = 0;
+                    TotalBeats = 0;
                     ElapsedTime = 0;
                     yield return null;
                     continue;
                 }
 
-                yield return new WaitForSeconds(60 / (float) Bpm);
-                
-                _totalBeats++;
-                ElapsedTime = _totalBeats * (60 / (float) Bpm);
-                
+                yield return new WaitForSeconds(60f / Bpm);
+
+                TotalBeats++;
+                ElapsedTime = TotalBeats * (60f / Bpm);
+
                 Beat?.Invoke(i);
-                
+
                 foreach (var action in _routineBeat)
                 {
                     StartCoroutine(action(i));
                 }
-                
+
                 i = (i + 1) % Tempo;
             }
         }
@@ -92,7 +92,7 @@ namespace Graphene.Rhythm
         public float GetLapse()
         {
             var bps = Bpm / 60f;
-            return ElapsedTime * bps - (int) (ElapsedTime * bps);
+            return ElapsedTime* bps - Mathf.Floor(ElapsedTime * bps);
         }
     }
 }

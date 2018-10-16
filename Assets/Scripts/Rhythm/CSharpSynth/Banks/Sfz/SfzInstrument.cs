@@ -10,9 +10,12 @@ namespace CSharpSynth.Banks.Sfz
     public class SfzInstrument : Instrument
     {
         //--Variables
-        private SfzRegion[] regions;   //the complete list of regions
-        private byte[] noteMap;        //maps the midi note to the correct region (wont work for complex sfz)
+        private SfzRegion[] regions; //the complete list of regions
+
+        private byte[] noteMap; //maps the midi note to the correct region (wont work for complex sfz)
+
         private bool allSamplesHaveDualChannels;
+
         //--Public Methods
         public SfzInstrument(string Instrumentfile, int sampleRate, InstrumentBank bank)
             : base()
@@ -22,32 +25,40 @@ namespace CSharpSynth.Banks.Sfz
             //ReadFromStream(File.Open(Instrumentfile, FileMode.Open), Path.GetDirectoryName(Instrumentfile) + "\\", bank);
             TextAsset instrumentFile = Resources.Load(Instrumentfile) as TextAsset;
             Stream instrumentStream = new MemoryStream(instrumentFile.bytes);
+#if DEBUG_LOG
             Debug.Log(Instrumentfile);
+#endif
             this.ReadFromStream(instrumentStream, Path.GetDirectoryName(Instrumentfile) + "/", bank);
 
             CreateKeyMap();
             base.Name = System.IO.Path.GetFileNameWithoutExtension(Instrumentfile);
         }
+
         public override bool allSamplesSupportDualChannel()
         {
             return allSamplesHaveDualChannels;
         }
+
         public override int getAttack(int note)
         {
             return regions[noteMap[note]].Attack;
         }
+
         public override int getRelease(int note)
         {
             return regions[noteMap[note]].Release;
         }
+
         public override int getDecay(int note)
         {
             return regions[noteMap[note]].Decay;
         }
+
         public override int getHold(int note)
         {
             return regions[noteMap[note]].Hold;
         }
+
         public override void enforceSampleRate(int sampleRate)
         {
             //The SFZ instrument automatically enforces the SampleRate in
@@ -59,19 +70,19 @@ namespace CSharpSynth.Banks.Sfz
             {
                 Sample s = base.SampleList[regions[x].SampleIndex];
                 float factor = (sampleRate / this.SampleRate);
-                regions[x].LoopEnd = (int)(regions[x].LoopEnd * factor);
-                regions[x].LoopStart = (int)(regions[x].LoopStart * factor);
-                regions[x].Offset = (int)(regions[x].Offset * factor);
-                regions[x].Attack = (int)(regions[x].Attack * factor);
-                regions[x].Release = (int)(regions[x].Release * factor);
-                regions[x].Decay = (int)(regions[x].Decay * factor);
-                regions[x].Hold = (int)(regions[x].Hold * factor);
+                regions[x].LoopEnd = (int) (regions[x].LoopEnd * factor);
+                regions[x].LoopStart = (int) (regions[x].LoopStart * factor);
+                regions[x].Offset = (int) (regions[x].Offset * factor);
+                regions[x].Attack = (int) (regions[x].Attack * factor);
+                regions[x].Release = (int) (regions[x].Release * factor);
+                regions[x].Decay = (int) (regions[x].Decay * factor);
+                regions[x].Hold = (int) (regions[x].Hold * factor);
             }
             //Enforce SampleRate on Samples
             for (int x = 0; x < base.SampleList.Length; x++)
             {
                 Sample s = base.SampleList[x];
-                float factor = sampleRate / (float)s.SampleRate;
+                float factor = sampleRate / (float) s.SampleRate;
                 if (factor != 1.0f)
                 {
                     s.setAllSampleData(WaveHelper.ReSample(sampleRate, s.SampleRate, s.getAllSampleData()));
@@ -80,14 +91,15 @@ namespace CSharpSynth.Banks.Sfz
             }
             this.SampleRate = sampleRate;
         }
+
         public override float getSampleAtTime(int note, int channel, int synthSampleRate, ref double time)
         {
             int originalSampleRate = synthSampleRate;
             SfzRegion r = regions[noteMap[note]];
             Sample neededSample = base.SampleList[r.SampleIndex];
             //Calculate SampleRate from pitch
-            synthSampleRate = (int)(synthSampleRate * Math.Pow(2.0, ((note - r.Root) + r.Tune) / 12.0));
-            int Currentsample = (int)(time / (1.0 / synthSampleRate));
+            synthSampleRate = (int) (synthSampleRate * Math.Pow(2.0, ((note - r.Root) + r.Tune) / 12.0));
+            int Currentsample = (int) (time / (1.0 / synthSampleRate));
             if (Currentsample > r.LoopEnd)
             {
                 if (r.LoopMode == 0)
@@ -98,11 +110,12 @@ namespace CSharpSynth.Banks.Sfz
                 else
                 {
                     Currentsample = r.LoopStart;
-                    time = (double)r.LoopStart * (1.00 / synthSampleRate);
+                    time = (double) r.LoopStart * (1.00 / synthSampleRate);
                 }
             }
             return neededSample.getSample(channel, Currentsample);
         }
+
         //--Private Methods
         private void ReadFromStream(Stream InstrumentStream, string path, InstrumentBank bank)
         {
@@ -114,6 +127,7 @@ namespace CSharpSynth.Banks.Sfz
             InstrumentStream.Dispose();
             ParseInstrumentData(text.ToArray(), path, bank);
         }
+
         private void ParseInstrumentData(string[] text, string InstrumentPath, InstrumentBank bank)
         {
             allSamplesHaveDualChannels = true;
@@ -137,7 +151,7 @@ namespace CSharpSynth.Banks.Sfz
                                     x++;
                                     if (x >= text.Length)
                                         break;
-                                    string[] Rvalue = text[x].Split(new string[] { "=" }, StringSplitOptions.RemoveEmptyEntries);
+                                    string[] Rvalue = text[x].Split(new string[] {"="}, StringSplitOptions.RemoveEmptyEntries);
                                     if (Rvalue.Length == 2)
                                     {
                                         switch (Rvalue[0])
@@ -145,7 +159,7 @@ namespace CSharpSynth.Banks.Sfz
                                             case "sample":
                                                 Rvalue[1] = System.IO.Path.GetFileNameWithoutExtension(Rvalue[1]);
                                                 groupValues[0] = true;
-                                                if (SampleNames.Contains(Rvalue[1]))//its in the local list so no need to check the master list
+                                                if (SampleNames.Contains(Rvalue[1])) //its in the local list so no need to check the master list
                                                 {
                                                     Group.SampleIndex = SampleNames.IndexOf(Rvalue[1]);
                                                 }
@@ -155,11 +169,11 @@ namespace CSharpSynth.Banks.Sfz
                                                     //check if the sample is in the master list.
                                                     int sampNum = bank.SampleNameList.IndexOf(Rvalue[1]);
                                                     Sample s;
-                                                    if (sampNum > -1)//its in the list
+                                                    if (sampNum > -1) //its in the list
                                                     {
                                                         s = bank.SampleList[sampNum];
                                                     }
-                                                    else//its not in the list
+                                                    else //its not in the list
                                                     {
                                                         s = new Sample(InstrumentPath + "SAMPLES/" + Rvalue[1] + ".wav");
                                                         bank.SampleList.Add(s);
@@ -172,11 +186,11 @@ namespace CSharpSynth.Banks.Sfz
                                                 }
                                                 break;
                                             case "hikey":
-                                                Group.HiNote = (byte)int.Parse(Rvalue[1]);
+                                                Group.HiNote = (byte) int.Parse(Rvalue[1]);
                                                 groupValues[1] = true;
                                                 break;
                                             case "lokey":
-                                                Group.LoNote = (byte)int.Parse(Rvalue[1]);
+                                                Group.LoNote = (byte) int.Parse(Rvalue[1]);
                                                 groupValues[2] = true;
                                                 break;
                                             case "loop_start":
@@ -232,26 +246,26 @@ namespace CSharpSynth.Banks.Sfz
                                                 break;
                                             case "lovel":
                                                 groupValues[13] = true;
-                                                Group.LoVelocity = (byte)int.Parse(Rvalue[1]);
+                                                Group.LoVelocity = (byte) int.Parse(Rvalue[1]);
                                                 break;
                                             case "hivel":
                                                 groupValues[14] = true;
-                                                Group.HiVelocity = (byte)int.Parse(Rvalue[1]);
+                                                Group.HiVelocity = (byte) int.Parse(Rvalue[1]);
                                                 break;
                                             case "lochan":
                                                 groupValues[15] = true;
-                                                Group.LoChannel = (byte)(int.Parse(Rvalue[1]) - 1);
+                                                Group.LoChannel = (byte) (int.Parse(Rvalue[1]) - 1);
                                                 break;
                                             case "hichan":
                                                 groupValues[16] = true;
-                                                Group.HiChannel = (byte)(int.Parse(Rvalue[1]) - 1);
+                                                Group.HiChannel = (byte) (int.Parse(Rvalue[1]) - 1);
                                                 break;
                                             case "key":
                                                 Group.Root = int.Parse(Rvalue[1]);
                                                 groupValues[6] = true;
-                                                Group.HiNote = (byte)Group.Root;
+                                                Group.HiNote = (byte) Group.Root;
                                                 groupValues[1] = true;
-                                                Group.LoNote = (byte)Group.Root;
+                                                Group.LoNote = (byte) Group.Root;
                                                 groupValues[2] = true;
                                                 break;
                                             case "offset":
@@ -284,14 +298,14 @@ namespace CSharpSynth.Banks.Sfz
                                     x++;
                                     if (x >= text.Length)
                                         break;
-                                    string[] Rvalue = text[x].Split(new string[] { "=" }, StringSplitOptions.RemoveEmptyEntries);
+                                    string[] Rvalue = text[x].Split(new string[] {"="}, StringSplitOptions.RemoveEmptyEntries);
                                     if (Rvalue.Length == 2)
                                     {
                                         switch (Rvalue[0])
                                         {
                                             case "sample":
-                                                Rvalue[1] = System.IO.Path.GetFileNameWithoutExtension(Rvalue[1]);//remove ending .wav
-                                                if (SampleNames.Contains(Rvalue[1]))//its in the local list so no need to check the master list
+                                                Rvalue[1] = System.IO.Path.GetFileNameWithoutExtension(Rvalue[1]); //remove ending .wav
+                                                if (SampleNames.Contains(Rvalue[1])) //its in the local list so no need to check the master list
                                                 {
                                                     r.SampleIndex = SampleNames.IndexOf(Rvalue[1]);
                                                 }
@@ -301,11 +315,11 @@ namespace CSharpSynth.Banks.Sfz
                                                     //check if the sample is in the master list.
                                                     int sampNum = bank.SampleNameList.IndexOf(Rvalue[1]);
                                                     Sample s;
-                                                    if (sampNum > -1)//its in the list
+                                                    if (sampNum > -1) //its in the list
                                                     {
                                                         s = bank.SampleList[sampNum];
                                                     }
-                                                    else//its not in the list
+                                                    else //its not in the list
                                                     {
                                                         s = new Sample(InstrumentPath + "SAMPLES/" + Rvalue[1] + ".wav");
                                                         bank.SampleList.Add(s);
@@ -318,10 +332,10 @@ namespace CSharpSynth.Banks.Sfz
                                                 }
                                                 break;
                                             case "hikey":
-                                                r.HiNote = (byte)int.Parse(Rvalue[1]);
+                                                r.HiNote = (byte) int.Parse(Rvalue[1]);
                                                 break;
                                             case "lokey":
-                                                r.LoNote = (byte)int.Parse(Rvalue[1]);
+                                                r.LoNote = (byte) int.Parse(Rvalue[1]);
                                                 break;
                                             case "loop_start":
                                                 r.LoopStart = int.Parse(Rvalue[1]);
@@ -365,21 +379,21 @@ namespace CSharpSynth.Banks.Sfz
                                                 r.Hold = SynthHelper.getSampleFromTime(this.SampleRate, float.Parse(Rvalue[1]));
                                                 break;
                                             case "lovel":
-                                                r.LoVelocity = (byte)int.Parse(Rvalue[1]);
+                                                r.LoVelocity = (byte) int.Parse(Rvalue[1]);
                                                 break;
                                             case "hivel":
-                                                r.HiVelocity = (byte)int.Parse(Rvalue[1]);
+                                                r.HiVelocity = (byte) int.Parse(Rvalue[1]);
                                                 break;
                                             case "lochan":
-                                                r.LoChannel = (byte)(int.Parse(Rvalue[1]) - 1);
+                                                r.LoChannel = (byte) (int.Parse(Rvalue[1]) - 1);
                                                 break;
                                             case "hichan":
-                                                r.HiChannel = (byte)(int.Parse(Rvalue[1]) - 1);
+                                                r.HiChannel = (byte) (int.Parse(Rvalue[1]) - 1);
                                                 break;
                                             case "key":
                                                 r.Root = int.Parse(Rvalue[1]);
-                                                r.HiNote = (byte)r.Root;
-                                                r.LoNote = (byte)r.Root;
+                                                r.HiNote = (byte) r.Root;
+                                                r.LoNote = (byte) r.Root;
                                                 break;
                                             case "offset":
                                                 r.Offset = int.Parse(Rvalue[1]);
@@ -459,24 +473,24 @@ namespace CSharpSynth.Banks.Sfz
             for (int x = 0; x < regions.Length; x++)
             {
                 Sample s = base.SampleList[regions[x].SampleIndex];
-                float factor = (this.SampleRate / (float)s.OriginalSampleRate);
-                regions[x].LoopEnd = (int)(regions[x].LoopEnd * factor);
-                regions[x].LoopStart = (int)(regions[x].LoopStart * factor);
-                regions[x].Offset = (int)(regions[x].Offset * factor);
+                float factor = (this.SampleRate / (float) s.OriginalSampleRate);
+                regions[x].LoopEnd = (int) (regions[x].LoopEnd * factor);
+                regions[x].LoopStart = (int) (regions[x].LoopStart * factor);
+                regions[x].Offset = (int) (regions[x].Offset * factor);
                 //Set loopend to end of sample if none is provided
                 if (regions[x].LoopEnd <= 0)
                 {
                     if (this.SampleRate != s.SampleRate)
-                        regions[x].LoopEnd = (int)(base.SampleList[regions[x].SampleIndex].SamplesPerChannel * factor) - 1;
+                        regions[x].LoopEnd = (int) (base.SampleList[regions[x].SampleIndex].SamplesPerChannel * factor) - 1;
                     else
-                        regions[x].LoopEnd = (int)(base.SampleList[regions[x].SampleIndex].SamplesPerChannel) - 1;
+                        regions[x].LoopEnd = (int) (base.SampleList[regions[x].SampleIndex].SamplesPerChannel) - 1;
                 }
             }
             //Resample as well
             for (int x = 0; x < base.SampleList.Length; x++)
             {
                 Sample s = base.SampleList[x];
-                float factor = this.SampleRate / (float)s.SampleRate;
+                float factor = this.SampleRate / (float) s.SampleRate;
                 if (factor != 1.0f)
                 {
                     s.setAllSampleData(WaveHelper.ReSample(this.SampleRate, s.SampleRate, s.getAllSampleData()));
@@ -484,6 +498,7 @@ namespace CSharpSynth.Banks.Sfz
                 }
             }
         }
+
         private void CreateKeyMap()
         {
             noteMap = new byte[255];
@@ -491,7 +506,7 @@ namespace CSharpSynth.Banks.Sfz
             {
                 for (int x2 = regions[x].LoNote; x2 < regions[x].HiNote + 1; x2++)
                 {
-                    noteMap[x2] = (byte)x;
+                    noteMap[x2] = (byte) x;
                 }
             }
         }

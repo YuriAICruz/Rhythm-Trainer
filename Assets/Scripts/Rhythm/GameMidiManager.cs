@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using CSharpSynth.Midi;
 using CSharpSynth.Sequencer;
 using CSharpSynth.Synthesis;
 using Graphene.Rhythm.Presentation;
@@ -9,6 +11,8 @@ namespace Graphene.Rhythm
     [RequireComponent(typeof(AudioSource))]
     public class GameMidiManager : MonoBehaviour
     {
+        public event Action<MidiFile> OnMidiSet;
+        
         public string bankFilePath = "GM Bank/gm";
 
         public string midiFilePath = "Midis/Groove.mid";
@@ -34,6 +38,7 @@ namespace Graphene.Rhythm
         [SerializeField] private int[] _beepNote;
         [SerializeField] private float[] _beepDuration;
         private MenuManager _menuManager;
+        private MidiFile _midi;
 
         void Awake()
         {
@@ -43,6 +48,7 @@ namespace Graphene.Rhythm
             midiStreamSynthesizer.LoadBank(bankFilePath);
 
             midiSequencer = new MidiSequencer(midiStreamSynthesizer);
+            midiSequencer.Looping = true;
 
             ShouldPlayFile = false;
             
@@ -77,8 +83,14 @@ namespace Graphene.Rhythm
         }
 
 
-        void LoadSong(string midiPath)
+        private void LoadSong(string midiPath)
         {
+            _midi = new MidiFile(midiPath);
+            OnMidiSet?.Invoke(_midi);
+            
+            Debug.Log(_midi.BeatsPerMinute);
+            Debug.Log(_midi.Tracks.Length);
+
             midiSequencer.LoadMidi(midiPath, false);
             midiSequencer.Play();
         }
@@ -99,10 +111,10 @@ namespace Graphene.Rhythm
         IEnumerator ProceduralMusic()
         {
             var t = 0f;
-            var beat = _metronome.Bpm / 60f / (float) _metronome.Tempo;
+            var beat = _metronome.Bpm / 60f;
 
             int loop = 0;
-            Debug.Log(beat);
+            
             while (true)
             {
                 if (loop % 5 == 0)

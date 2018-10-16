@@ -209,9 +209,9 @@ GameObject:
   - component: {fileID: 222850537}
   - component: {fileID: 222850538}
   - component: {fileID: 222850539}
-  - component: {fileID: 222850541}
-  - component: {fileID: 222850540}
   - component: {fileID: 222850542}
+  - component: {fileID: 222850540}
+  - component: {fileID: 222850541}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -231,7 +231,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Tempo: 4
-  Bpm: 60
+  Bpm: 120
+  TotalBeats: 0
 --- !u!4 &222850536
 Transform:
   m_ObjectHideFlags: 0
@@ -287,7 +288,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CoinPool: 10
-  Space: 10
+  Space: 6
+  Offset: 0.5
 --- !u!114 &222850540
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -300,7 +302,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bankFilePath: GM Bank/gm
-  midiFilePath: Midis/Poison.mid
+  midiFilePath: Midis/BlueMonday.mid
   bufferSize: 1024
   midiNote: 90
   midiNoteVolume: 40
@@ -422,6 +424,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PoolSize: 5
   Space: 40
+  Offset: 0.5
 --- !u!1 &296357732
 GameObject:
   m_ObjectHideFlags: 0
@@ -1529,7 +1532,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1501218679}
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 150, y: 0, z: 70}
+  m_LocalPosition: {x: 120, y: 0, z: 70}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 126902063}
@@ -1548,8 +1551,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: abc7d655f6c5490c9f8ec6e51c658230, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TurnSpeed: 12
-  ViewArea: 6
+  ColisionRadius: 1
+  ViewArea: 7
   Climbing: 0
   Animator: {fileID: 126902065}
 --- !u!1 &1535574874
@@ -1760,13 +1763,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1918622715}
-  m_LocalRotation: {x: -0.45451945, y: -0.54167527, z: 0.45451945, w: -0.54167527}
-  m_LocalPosition: {x: 157.93, y: 80, z: 40}
+  m_LocalRotation: {x: -0.3535534, y: -0.61237246, z: 0.3535534, w: -0.61237246}
+  m_LocalPosition: {x: 120, y: 80, z: 40}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 80, y: -270, z: 0}
+  m_LocalEulerAnglesHint: {x: 60, y: -270, z: 0}
 --- !u!114 &1918622719
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1779,7 +1782,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Target: {fileID: 656169059}
-  Offset: {x: 0, y: 1.6, z: 0}
+  Offset: {x: -5, y: 12, z: 0}
 --- !u!1 &1925679054
 GameObject:
   m_ObjectHideFlags: 0

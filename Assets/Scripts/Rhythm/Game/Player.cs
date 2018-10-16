@@ -7,7 +7,7 @@ namespace Graphene.Rhythm.Game
 {
     public class Player : MonoBehaviour
     {
-        public float TurnSpeed;
+        public float ColisionRadius = 0.6f;
         public int ViewArea = 3;
         public bool Climbing;
         private LayerMask _coinMask;
@@ -24,15 +24,15 @@ namespace Graphene.Rhythm.Game
         private Transform camera;
 
         private Metronome _metronome;
-        private int _iniBpm;
         private float _acceleration;
 
         private int count;
         private MenuManager _menuManager;
         private bool _playing, _playOk;
         private Vector3 _iniPos;
-        private float _movement;
+        private float _travelZ;
         private float _lastMove;
+        private float _t = 0;
 
 
         private void Start()
@@ -62,7 +62,7 @@ namespace Graphene.Rhythm.Game
             var ray = new Ray(transform.position, Vector3.down);
             _gr = _grid.Grid.GetPos(ray);
 
-            _position = _gr.worldPos;
+            SetPos();
 
             transform.position = _position;
 
@@ -70,12 +70,17 @@ namespace Graphene.Rhythm.Game
 
             _metronome = FindObjectOfType<Metronome>();
             _metronome.Beat += Beat;
-            _iniBpm = _metronome.Bpm;
+        }
+
+        private void SetPos()
+        {
+            _position = _gr.worldPos;
+            _travelZ = Mathf.Floor(_position.z / _grid.Widith) * _grid.Widith;
         }
 
         private void StartGame()
         {
-            Animator.SetFloat("Speed", 2);
+            Animator.SetFloat("Speed", _metronome.Bpm/60f);
             _playOk = true;
         }
 
@@ -88,7 +93,7 @@ namespace Graphene.Rhythm.Game
             var ray = new Ray(transform.position, Vector3.down);
             _gr = _grid.Grid.GetPos(ray);
 
-            _position = _gr.worldPos;
+            SetPos();
 
             _grid.GenMesh(_grid.Grid.SelectRegion(_gr, ViewArea, false));
 
@@ -99,11 +104,11 @@ namespace Graphene.Rhythm.Game
         {
             if (!_playing) return;
 
-            _position.x += _metronome.Bpm / 6f * Time.deltaTime;
-            _position.z += _movement * Time.deltaTime;
+            _position.x = (_metronome.ElapsedTime + 20) * _grid.Widith * _metronome.Bpm/60f; //Mathf.Lerp(_position.x, (_metronome.TotalBeats+20) * _grid.Widith, _t);
+            _position.z = Mathf.Lerp(_position.z, _travelZ, _t);
             _position.y = GetY(_position);
 
-            _movement = Mathf.Lerp(_movement, 0, Time.deltaTime * (_metronome.Bpm / 60f));
+            _t += _metronome.Bpm/60f * Time.deltaTime;
 
             CheckGrid();
             GrabCoin();
@@ -130,7 +135,7 @@ namespace Graphene.Rhythm.Game
 
         private void GrabCoin()
         {
-            var hits = Physics.SphereCastAll(_position, 1, transform.forward, 1, _coinMask);
+            var hits = Physics.SphereCastAll(_position, ColisionRadius, transform.forward, ColisionRadius, _coinMask);
 
             foreach (var hit in hits)
             {
@@ -141,7 +146,7 @@ namespace Graphene.Rhythm.Game
 
         private void CheckCollision()
         {
-            var hits = Physics.SphereCastAll(_position, 1, transform.forward, 1, _obstacleMask);
+            var hits = Physics.SphereCastAll(_position, ColisionRadius, transform.forward, ColisionRadius, _obstacleMask);
 
             foreach (var hit in hits)
             {
@@ -167,7 +172,7 @@ namespace Graphene.Rhythm.Game
             var ray = new Ray(_iniPos, Vector3.down);
             _gr = _grid.Grid.GetPos(ray);
 
-            _position = _gr.worldPos;
+            SetPos();
 
             transform.position = _iniPos;
         }
@@ -192,7 +197,7 @@ namespace Graphene.Rhythm.Game
             }
             Animator.SetBool("Climbing", Climbing);
 
-            transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+            // transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
         }
 
         private void CheckGrid()
@@ -206,7 +211,7 @@ namespace Graphene.Rhythm.Game
             if (count < 3) return;
             count = 0;
 
-            var advGr = _grid.Grid.GetPos(_gr.x + (int) (ViewArea - 1), _gr.y);
+            var advGr = _grid.Grid.GetPos(_gr.x + (int) (ViewArea - 2), _gr.y);
 
             _grid.GenMesh(_grid.Grid.SelectRegion(advGr, ViewArea, false));
         }
@@ -214,10 +219,6 @@ namespace Graphene.Rhythm.Game
 
         private void GetInput()
         {
-            if (Input.GetButtonDown("Fire1"))
-            {
-                DoAction();
-            }
             if (Input.GetButtonDown("Horizontal"))
             {
                 var l = _metronome.GetLapse();
@@ -235,12 +236,16 @@ namespace Graphene.Rhythm.Game
         {
             if(Time.time - _lastMove < 0.4f) return;
             
+            _t = 0;
+            
             _lastMove = Time.time;
-            _movement = Mathf.Sign(value) * TurnSpeed;
+            _travelZ = _position.z + Mathf.Sign(value) * _grid.Widith;
         }
 
         private void Beat(int index)
         {
+            _t = 0;
+            
             if (index != 0 || !_playOk) return;
 
             _playing = true;

@@ -7,13 +7,15 @@ namespace Graphene.Rhythm
 {
     public class ObstaclesGenerator : MonoBehaviour
     {
-        private Transform _target;
         public int PoolSize;
+        public float Space = 4;
+        public float Offset;
+
+        private Transform _target;
         private GameObject[] _pool;
         private TrailSystem _trail;
         private InfiniteHexGrid _infGrid;
         private GridSystem _gridSystem;
-        public float Space = 4;
         private Metronome _metronome;
 
         private int _lastPos;
@@ -91,6 +93,7 @@ namespace Graphene.Rhythm
         {
             if(p.x < 500) return;
 
+            p.x += Offset;
             var space = GetSpace();
             
             var pos = new Vector3[]
@@ -106,10 +109,11 @@ namespace Graphene.Rhythm
 
             for (int i = 0; i < pos.Length; i++)
             {
-                var outPos = _trail.CoinMath(pos[i]);
+                var outPos = _trail.TrailMath(pos[i]);
                 var split = Mathf.Abs(outPos[0].z - outPos[1].z) > 1f;
 
-                outPos[0].z += offset * space * 0.5f + 2 * Mathf.Sign(offset);
+                outPos[0].z = Mathf.Floor(outPos[0].z / _gridSystem.Widith) * _gridSystem.Widith;
+                outPos[0].z += offset *  _gridSystem.Widith;
                 outPos[0].y = _infGrid.YGraph(outPos[0]);
 
                 _pool[_currentCoin + i * 2].transform.eulerAngles = new Vector3(0, rot, 0);
@@ -118,7 +122,8 @@ namespace Graphene.Rhythm
 
                 if (split)
                 {
-                    outPos[1].z += offset * space;
+                    outPos[1].z = Mathf.Floor(outPos[0].z / _gridSystem.Widith) * _gridSystem.Widith;
+                    outPos[1].z += offset *  _gridSystem.Widith;
                     outPos[1].y = _infGrid.YGraph(outPos[1]);
                     _pool[_currentCoin + i * 2 + 1].transform.eulerAngles = new Vector3(0, rot, 0);
                     _pool[_currentCoin + i * 2 + 1].transform.position = outPos[1];
