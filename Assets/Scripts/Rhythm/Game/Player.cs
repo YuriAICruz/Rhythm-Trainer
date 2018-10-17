@@ -2,6 +2,7 @@
 using Graphene.Grid;
 using Graphene.Rhythm.Presentation;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Graphene.Rhythm.Game
 {
@@ -14,6 +15,10 @@ namespace Graphene.Rhythm.Game
         private LayerMask _obstacleMask;
 
         public Animator Animator;
+        
+        [Space]
+        public int ProjectilesCount;
+        public float ProjectileSpeed;
 
         private IGridInfo _gr;
         private GridSystem _grid;
@@ -34,6 +39,25 @@ namespace Graphene.Rhythm.Game
         private float _lastMove;
         private float _t = 0;
         private bool _hit;
+        
+        private Transform[] _projectiles;
+        private int _current;
+        private float _lastTime;
+
+        private void Awake()
+        {
+            var go = Resources.Load<GameObject>("Player/Projectile");
+            _projectiles = new Transform[ProjectilesCount];
+
+            for (int i = 0; i < ProjectilesCount; i++)
+            {
+                _projectiles[i] = Instantiate(go).transform;
+                _projectiles[i].position = Vector3.one * -1000;
+            }
+            
+            _coinMask = (LayerMask.GetMask("Coin"));
+            _obstacleMask = (LayerMask.GetMask("Obstacle"));
+        }
 
 
         private void Start()
@@ -42,9 +66,6 @@ namespace Graphene.Rhythm.Game
             _menuManager = FindObjectOfType<MenuManager>();
             _menuManager.OnStartGame += StartGame;
             _menuManager.OnRestartGame += RestartGame;
-
-            _coinMask = (LayerMask.GetMask("Coin"));
-            _obstacleMask = (LayerMask.GetMask("Obstacle"));
 
             _iniPos = transform.position;
 
@@ -81,6 +102,7 @@ namespace Graphene.Rhythm.Game
 
         private void StartGame()
         {
+            _lastTime = _metronome.ElapsedTime;
             Animator.SetFloat("Speed", _metronome.Bpm / 60f);
             _playOk = true;
         }
@@ -114,6 +136,7 @@ namespace Graphene.Rhythm.Game
             CheckGrid();
             GrabCoin();
             CheckCollision();
+            UpdateProjectilesPosition();
             transform.position = _position;
 
             LookDir();
@@ -132,6 +155,16 @@ namespace Graphene.Rhythm.Game
             _lastPosition = _position;
 
             GetInput();
+        }
+        
+        private void UpdateProjectilesPosition()
+        {
+            var delta = _metronome.ElapsedTime - _lastTime;
+            for (int i = 0; i < ProjectilesCount; i++)
+            {
+                _projectiles[i].position = new Vector3(_projectiles[i].position.x + delta * ProjectileSpeed, GetY(_projectiles[i].position), _projectiles[i].position.z);
+            }
+            _lastTime = _metronome.ElapsedTime;
         }
 
         private void GrabCoin()
@@ -243,6 +276,15 @@ namespace Graphene.Rhythm.Game
 
             _lastMove = Time.time;
             _travelZ = _position.z + Mathf.Sign(value) * _grid.Widith;
+
+            Shoot();
+        }
+        
+        private void Shoot()
+        {
+            _projectiles[_current].position = _position;
+
+            _current = (_current + 1) % ProjectilesCount;
         }
 
         private void Beat(int index)

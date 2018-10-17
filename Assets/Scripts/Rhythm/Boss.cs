@@ -32,6 +32,10 @@ namespace Graphene.Rhythm
         private float _lastTime;
 
 
+
+        private float _colisionRadius = 1;
+        private LayerMask _obstacleMask;
+        
         private void Awake()
         {
             _menuManager = FindObjectOfType<MenuManager>();
@@ -52,6 +56,8 @@ namespace Graphene.Rhythm
             _player = FindObjectOfType<Player>();
 
             var go = Resources.Load<GameObject>("Boss/Projectile");
+            
+            _obstacleMask = (LayerMask.GetMask("Player"));
 
             _projectiles = new Transform[ProjectilesCount];
 
@@ -120,6 +126,22 @@ namespace Graphene.Rhythm
             _t += Time.deltaTime;
 
             transform.position = _position;
+        }
+
+        private void CheckCollision()
+        {
+            var hits = Physics.SphereCastAll(_position, _colisionRadius, transform.forward, _colisionRadius, _obstacleMask);
+    
+            foreach (var hit in hits)
+            {
+                Hit();
+                return;
+            }
+        }
+
+        private void Hit()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

@@ -142,7 +142,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   StartOffset: 22
-  ProjectilesCount: 2
+  ProjectilesCount: 4
   ProjectileSpeed: 3
   _probability: 0.065
 --- !u!4 &94208772
@@ -209,6 +209,30 @@ Prefab:
     - target: {fileID: 400008, guid: 10a1e47d0d282414481a0b2a67c79333, type: 3}
       propertyPath: m_LocalScale.z
       value: 0.50548
+      objectReference: {fileID: 0}
+    - target: {fileID: 100008, guid: 10a1e47d0d282414481a0b2a67c79333, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 10a1e47d0d282414481a0b2a67c79333, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: 10a1e47d0d282414481a0b2a67c79333, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 100004, guid: 10a1e47d0d282414481a0b2a67c79333, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 100006, guid: 10a1e47d0d282414481a0b2a67c79333, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 100010, guid: 10a1e47d0d282414481a0b2a67c79333, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 11100000, guid: 10a1e47d0d282414481a0b2a67c79333, type: 3}
@@ -347,7 +371,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bankFilePath: GM Bank/gm
-  midiFilePath: Midis/BlueMonday.mid
+  midiFilePath: Midis/AnotherRetroTune.mid
   bufferSize: 1024
   midiNote: 90
   midiNoteVolume: 40
@@ -833,7 +857,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 656169059}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1634,7 +1658,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1501218680}
   - component: {fileID: 1501218681}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1671,6 +1695,8 @@ MonoBehaviour:
   ViewArea: 6
   Climbing: 0
   Animator: {fileID: 126902065}
+  ProjectilesCount: 4
+  ProjectileSpeed: 36
 --- !u!1 &1535574874
 GameObject:
   m_ObjectHideFlags: 0

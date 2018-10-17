@@ -1,6 +1,7 @@
 ﻿using System;
 using Graphene.UiGenerics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Graphene.Rhythm.Presentation
@@ -49,7 +50,7 @@ namespace Graphene.Rhythm.Presentation
 
             if (Input.GetMouseButtonDown(0))
             {
-                RestartScreen();
+                SceneManager.LoadScene(0);
             }
         }
 

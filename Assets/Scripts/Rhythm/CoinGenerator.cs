@@ -41,7 +41,7 @@ namespace Graphene.Rhythm
             _menuManager.OnRestartGame += RestartGame;
 
             _midiManager = GetComponent<GameMidiManager>();
-            _midiManager.OnMidiSet += GenerateCoins;
+            //_midiManager.OnMidiSet += GenerateCoins;
 
             for (int i = 0; i < CoinPool * _mul; i++)
             {
