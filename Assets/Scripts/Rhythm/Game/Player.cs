@@ -33,6 +33,7 @@ namespace Graphene.Rhythm.Game
         private float _travelZ;
         private float _lastMove;
         private float _t = 0;
+        private bool _hit;
 
 
         private void Start()
@@ -80,7 +81,7 @@ namespace Graphene.Rhythm.Game
 
         private void StartGame()
         {
-            Animator.SetFloat("Speed", _metronome.Bpm/60f);
+            Animator.SetFloat("Speed", _metronome.Bpm / 60f);
             _playOk = true;
         }
 
@@ -104,11 +105,11 @@ namespace Graphene.Rhythm.Game
         {
             if (!_playing) return;
 
-            _position.x = (_metronome.ElapsedTime + 20) * _grid.Widith * _metronome.Bpm/60f; //Mathf.Lerp(_position.x, (_metronome.TotalBeats+20) * _grid.Widith, _t);
+            _position.x = (_metronome.ElapsedTime + 20) * _grid.Widith * _metronome.Bpm / 60f; //Mathf.Lerp(_position.x, (_metronome.TotalBeats+20) * _grid.Widith, _t);
             _position.z = Mathf.Lerp(_position.z, _travelZ, _t);
             _position.y = GetY(_position);
 
-            _t += _metronome.Bpm/60f * Time.deltaTime;
+            _t += _metronome.Bpm / 60f * Time.deltaTime;
 
             CheckGrid();
             GrabCoin();
@@ -227,17 +228,19 @@ namespace Graphene.Rhythm.Game
 
                 if (l < 0.4f)
                 {
+                    _menuManager.HitFeedBack(l);
                     MoveTo(-Input.GetAxis("Horizontal"));
+                    _hit = true;
                 }
             }
         }
 
         private void MoveTo(float value)
         {
-            if(Time.time - _lastMove < 0.4f) return;
-            
+            if (Time.time - _lastMove < 0.4f) return;
+
             _t = 0;
-            
+
             _lastMove = Time.time;
             _travelZ = _position.z + Mathf.Sign(value) * _grid.Widith;
         }
@@ -245,7 +248,12 @@ namespace Graphene.Rhythm.Game
         private void Beat(int index)
         {
             _t = 0;
-            
+
+            if (!_hit)
+                _menuManager.HitFeedBack(1);
+
+            _hit = false;
+
             if (index != 0 || !_playOk) return;
 
             _playing = true;

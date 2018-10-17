@@ -114,7 +114,7 @@ namespace CSharpSynth.Sequencer
                     //Combine all tracks into 1 track that is organized from lowest to highest abs time
                     if (_track == 0)
                         _MidiFile.CombineTracks();
-                    
+
                     //Convert delta time to sample time
                     eventIndex = 0;
                     uint lastSample = 0;
@@ -147,7 +147,7 @@ namespace CSharpSynth.Sequencer
             {
                 if (synth.SoundBank == null)
                 {
-//If there is no bank warn the developer =)
+                    //If there is no bank warn the developer =)
                     Debug.Log("No Soundbank loaded !");
                 }
                 else

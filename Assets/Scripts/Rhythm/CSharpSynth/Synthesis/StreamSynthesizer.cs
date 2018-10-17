@@ -25,7 +25,7 @@ namespace CSharpSynth.Synthesis
         //Set "once parameters"
         private int audioChannels = 1;
         private int sampleRate = 44100;
-        private int samplesperBuffer = 2000;
+        public int samplesperBuffer = 2000;
         private int polyphony = 40; //total number of voices available
         private int maxnotepoly = 2; //how many of the same note can be playing at once
         //Tweakable Parameters, anytime via properties

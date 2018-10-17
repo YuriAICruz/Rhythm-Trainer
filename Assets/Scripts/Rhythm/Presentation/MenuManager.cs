@@ -13,10 +13,14 @@ namespace Graphene.Rhythm.Presentation
         public CanvasGroupView GameOver;
         public CanvasGroupView ScoreScreen;
 
+        public Transform FeedBack;
+
         public Text[] Coins;
 
         int _coins;
         private bool _gameover;
+        private float _t;
+        private Vector3 _scale;
 
         private void Start()
         {
@@ -29,7 +33,7 @@ namespace Graphene.Rhythm.Presentation
         public void EndGame()
         {
             OnGameOver?.Invoke();
-            
+
             MainMenu.Hide();
             GameOver.Hide();
             ScoreScreen.Show();
@@ -39,12 +43,21 @@ namespace Graphene.Rhythm.Presentation
 
         private void Update()
         {
-            if (!_gameover) return;
+            AnimateFeedback();
             
+            if (!_gameover) return;
+
             if (Input.GetMouseButtonDown(0))
             {
                 RestartScreen();
             }
+        }
+
+        private void AnimateFeedback()
+        {
+            FeedBack.localScale = Vector3.Lerp(_scale, Vector3.one, _t);
+
+            _t += Time.deltaTime;
         }
 
         void RestartScreen()
@@ -66,7 +79,7 @@ namespace Graphene.Rhythm.Presentation
         public void RestartGame()
         {
             _gameover = false;
-            
+
             _coins = 0;
             MainMenu.Hide();
             GameOver.Hide();
@@ -78,7 +91,7 @@ namespace Graphene.Rhythm.Presentation
         public void StartGame()
         {
             _gameover = false;
-            
+
             UpdateCoins();
             MainMenu.Hide();
             GameOver.Hide();
@@ -91,6 +104,12 @@ namespace Graphene.Rhythm.Presentation
         {
             _coins += value;
             UpdateCoins();
+        }
+
+        public void HitFeedBack(float time)
+        {
+            _scale = Vector3.one * (2 - time);
+            _t = 0;
         }
     }
 }

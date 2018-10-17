@@ -7,6 +7,7 @@ namespace Graphene.Rhythm
     public class CameraSimpleFollow : MonoBehaviour
     {
         public Transform Target;
+        public Transform BossTarget;
 
         public Vector3 Offset;
         //public Vector3 BackOffset;
@@ -20,6 +21,8 @@ namespace Graphene.Rhythm
         {
             if (Target == null)
                 Target = FindObjectOfType<Player>().transform;
+
+            BossTarget = FindObjectOfType<Boss>().transform;
 
 
             _menuManager = FindObjectOfType<MenuManager>();
@@ -38,13 +41,14 @@ namespace Graphene.Rhythm
         private void Update()
         {
             transform.position = Vector3.Lerp(transform.position, Target.transform.position + Offset, Time.deltaTime * _speed);
-            
-            var dir = transform.position - Target.transform.position + Offset;
 
-            dir.z = 0;
+            var dir = transform.position - BossTarget.transform.position + Offset;
+
             dir.Normalize();
-            
-            //transform.rotation = Quaternion.LookRotation(-dir, Vector3.up);
+            dir.y = 0.6f;
+            dir.Normalize();
+
+            transform.rotation = Quaternion.LookRotation(-dir, Vector3.up);
         }
     }
 }

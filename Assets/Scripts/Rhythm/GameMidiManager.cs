@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using CSharpSynth.Midi;
 using CSharpSynth.Sequencer;
 using CSharpSynth.Synthesis;
+using Graphene.Grid;
 using Graphene.Rhythm.Presentation;
 using UnityEngine;
 
@@ -12,7 +15,7 @@ namespace Graphene.Rhythm
     public class GameMidiManager : MonoBehaviour
     {
         public event Action<MidiFile> OnMidiSet;
-        
+
         public string bankFilePath = "GM Bank/gm";
 
         public string midiFilePath = "Midis/Groove.mid";
@@ -33,12 +36,15 @@ namespace Graphene.Rhythm
         private Metronome _metronome;
 
         [SerializeField] private int _pianoNote;
-        
+
         [SerializeField] private int[] _beetInstrument;
         [SerializeField] private int[] _beepNote;
         [SerializeField] private float[] _beepDuration;
         private MenuManager _menuManager;
         private MidiFile _midi;
+        private GridSystem _gridSystem;
+        private InfiniteHexGrid _infGrid;
+        private float[] _events;
 
         void Awake()
         {
@@ -51,15 +57,31 @@ namespace Graphene.Rhythm
             midiSequencer.Looping = true;
 
             ShouldPlayFile = false;
-            
+
             _menuManager = FindObjectOfType<MenuManager>();
             _menuManager.OnStartGame += StartMetronome;
             _menuManager.OnGameOver += StopMetronome;
 
             _metronome = FindObjectOfType<Metronome>();
-            _metronome.Beat += StartMusic;
             _metronome.BeatSubscribe(DoBeep);
             _metronome.BeatEvent += Play;
+
+            _gridSystem = GetComponent<GridSystem>();
+
+            _infGrid = (InfiniteHexGrid) _gridSystem.Grid;
+            if (_infGrid != null)
+                _infGrid.SetYGraph = YGraph;
+        }
+
+        private float YGraph(Vector3 pos)
+        {
+//            if (!midiSequencer.isPlaying || _events == null) return 0;
+
+//            var i = (int) (pos.x * 0.5f % _events.Length);
+//            var i2 = Mathf.Sign(pos.x - _events[i]) > 0 ? (i + 1) % _events.Length : (i - 1) % _events.Length;
+//            return Mathf.Lerp(_events[i], _events[i2], Mathf.Abs(pos.x - _events[i])) + Mathf.Cos(pos.z * 0.2f) * 1.5f;
+
+            return Mathf.Sin(pos.x * 0.05f) * 2.6f + Mathf.Cos(pos.z * 0.1f) * 1.2f;
         }
 
         private void StopMetronome()
@@ -70,16 +92,14 @@ namespace Graphene.Rhythm
         private void StartMetronome()
         {
             ShouldPlayFile = true;
+            StartMusic();
         }
 
-        private void StartMusic(int i)
+        private void StartMusic()
         {
-            if (i != 0) return;
-
             if (midiSequencer.isPlaying || !ShouldPlayFile) return;
-            
+
             LoadSong(midiFilePath);
-            //StartCoroutine(ProceduralMusic());
         }
 
 
@@ -87,11 +107,38 @@ namespace Graphene.Rhythm
         {
             _midi = new MidiFile(midiPath);
             OnMidiSet?.Invoke(_midi);
-            
-            Debug.Log(_midi.BeatsPerMinute);
-            Debug.Log(_midi.Tracks.Length);
+            midiSequencer.LoadMidi(_midi, false, 0);
 
-            midiSequencer.LoadMidi(midiPath, false);
+//            var totalTime = (int) _midi.Tracks[0].TotalTime;
+//            _events = new float[(int) (totalTime / _gridSystem.Widith)];
+//
+//            var frame = midiStreamSynthesizer.samplesperBuffer;
+//
+//            var list = _midi.Tracks[0].MidiEvents.ToList();
+//
+//            var sampleTime = 0;
+//            var eventIndex = 0;
+//
+//            for (int i = 0; i < (totalTime / frame); i++)
+//            {
+//                var j = 1;
+//                while (eventIndex < _midi.Tracks[0].EventCount && _midi.Tracks[0].MidiEvents[eventIndex].deltaTime < (sampleTime + frame))
+//                {
+//                    if (_midi.Tracks[0].MidiEvents[eventIndex].midiChannelEvent == MidiHelper.MidiChannelEvent.Note_On)
+//                    {
+//                        _events[i] = j;
+//                        j++;
+//                    }
+//
+//                    eventIndex++;
+//                }
+//
+//                sampleTime += frame;
+//            }
+
+            Debug.Log("BeatsPerMinute: " + _midi.BeatsPerMinute);
+            Debug.Log("Tracks.Length: " + _midi.Tracks.Length);
+
             midiSequencer.Play();
         }
 
@@ -102,36 +149,17 @@ namespace Graphene.Rhythm
 
         private void Update()
         {
+            if (_infGrid == null)
+                _infGrid = (InfiniteHexGrid) _gridSystem.Grid;
+
+            if (_infGrid != null && _infGrid.SetYGraph == null)
+                _infGrid.SetYGraph = YGraph;
+
+            _metronome.SetElapsedTime((midiSequencer.SampleTime / (float) midiStreamSynthesizer.samplesperBuffer) * 0.02f);
+
             if (midiSequencer.isPlaying && !ShouldPlayFile)
             {
                 midiSequencer.Stop(true);
-            }
-        }
-
-        IEnumerator ProceduralMusic()
-        {
-            var t = 0f;
-            var beat = _metronome.Bpm / 60f;
-
-            int loop = 0;
-            
-            while (true)
-            {
-                if (loop % 5 == 0)
-                    StartCoroutine(DoBeep(0, 60 + loop / 5, beat * 5, 200, 102));
-
-                StartCoroutine(DoBeep(0, (int) (_pianoNote + Mathf.Sin(t * _metronome.Bpm) * 6), beat, 300, midiInstrument));
-
-                yield return new WaitForSeconds(beat / 2);
-
-                StartCoroutine(DoBeep(0, (int) (_pianoNote + 1 + Mathf.Sin(t * _metronome.Bpm) * 6), beat, 300, midiInstrument));
-
-                yield return new WaitForSeconds(beat / 2);
-
-                loop++;
-                if ((int) (loop / 5) > 4)
-                    loop = 0;
-                t += Time.deltaTime;
             }
         }
 

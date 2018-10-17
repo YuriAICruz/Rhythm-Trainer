@@ -15,6 +15,8 @@ namespace Graphene.Rhythm
 
         public float ElapsedTime { get; private set; }
 
+        public Action<float> SetElapsedTime;
+
         public delegate IEnumerator RoutineAction(int i);
 
         public event Action<int> Beat;
@@ -34,6 +36,8 @@ namespace Graphene.Rhythm
             _menuManager.OnStartGame += StartMetronome;
             _menuManager.OnGameOver += StopMetronome;
             StartCoroutine(Counter());
+
+            SetElapsedTime += f => ElapsedTime = f;
         }
 
         private void StartMetronome()
@@ -50,7 +54,7 @@ namespace Graphene.Rhythm
         {
             if (!_canPlay) return;
 
-            ElapsedTime += Time.deltaTime;
+            //ElapsedTime += Time.deltaTime;
         }
 
         IEnumerator Counter()
@@ -71,7 +75,7 @@ namespace Graphene.Rhythm
                 yield return new WaitForSeconds(60f / Bpm);
 
                 TotalBeats++;
-                ElapsedTime = TotalBeats * (60f / Bpm);
+                //ElapsedTime = TotalBeats * (60f / Bpm);
 
                 Beat?.Invoke(i);
 
