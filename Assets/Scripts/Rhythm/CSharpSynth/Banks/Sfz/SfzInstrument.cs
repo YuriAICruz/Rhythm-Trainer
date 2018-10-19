@@ -24,14 +24,16 @@ namespace CSharpSynth.Banks.Sfz
             //UnitySynth
             //ReadFromStream(File.Open(Instrumentfile, FileMode.Open), Path.GetDirectoryName(Instrumentfile) + "\\", bank);
             TextAsset instrumentFile = Resources.Load(Instrumentfile) as TextAsset;
+            
             Stream instrumentStream = new MemoryStream(instrumentFile.bytes);
+            this.ReadFromStream(instrumentStream, Path.GetDirectoryName(Instrumentfile) + "/", bank);
+            base.Name = System.IO.Path.GetFileNameWithoutExtension(Instrumentfile);
+            
 #if DEBUG_LOG
             Debug.Log(Instrumentfile);
 #endif
-            this.ReadFromStream(instrumentStream, Path.GetDirectoryName(Instrumentfile) + "/", bank);
-
+            
             CreateKeyMap();
-            base.Name = System.IO.Path.GetFileNameWithoutExtension(Instrumentfile);
         }
 
         public override bool allSamplesSupportDualChannel()

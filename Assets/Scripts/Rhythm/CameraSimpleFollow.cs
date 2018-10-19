@@ -16,6 +16,8 @@ namespace Graphene.Rhythm
         private MenuManager _menuManager;
         private Vector3 _iniPos;
         private Quaternion _iniRot;
+        [SerializeField]
+        private float _yHeight = 0.6f;
 
         private void Start()
         {
@@ -45,10 +47,10 @@ namespace Graphene.Rhythm
             var dir = transform.position - BossTarget.transform.position + Offset;
 
             dir.Normalize();
-            dir.y = 0.6f;
+            dir.y = _yHeight;
             dir.Normalize();
 
-            transform.rotation = Quaternion.LookRotation(-dir, Vector3.up);
+            //transform.rotation = Quaternion.LookRotation(-dir, Vector3.up);
         }
     }
 }

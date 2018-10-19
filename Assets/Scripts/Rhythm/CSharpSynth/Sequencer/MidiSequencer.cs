@@ -101,6 +101,8 @@ namespace CSharpSynth.Sequencer
             set { looping = value; }
         }
 
+        public event Action OnLoop;
+
         public bool LoadMidi(MidiFile midi, bool UnloadUnusedInstruments, uint track)
         {
             if (playing == true)
@@ -185,6 +187,7 @@ namespace CSharpSynth.Sequencer
         {
             if (playing == true)
                 return;
+            
             //Clear the current programs for the channels.
             Array.Clear(currentPrograms, 0, currentPrograms.Length);
             //Clear vol, pan, and tune
@@ -193,6 +196,7 @@ namespace CSharpSynth.Sequencer
             _MidiFile.BeatsPerMinute = 120;
             //Let the synth know that the sequencer is ready.
             eventIndex = 0;
+            
             playing = true;
         }
 
@@ -254,9 +258,10 @@ namespace CSharpSynth.Sequencer
             //stop or loop
             if (sampleTime >= (int) _MidiFile.Tracks[_track].TotalTime)
             {
-                sampleTime = 0;
                 if (looping == true)
                 {
+                    OnLoop?.Invoke();
+                    sampleTime = 0;
                     //Clear the current programs for the channels.
                     Array.Clear(currentPrograms, 0, currentPrograms.Length);
                     //Clear vol, pan, and tune
@@ -268,6 +273,7 @@ namespace CSharpSynth.Sequencer
                 }
                 else
                 {
+                    sampleTime = 0;
                     playing = false;
                     synth.NoteOffAll(true);
                     return null;

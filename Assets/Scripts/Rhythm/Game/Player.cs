@@ -1,48 +1,61 @@
 ﻿using System;
 using Graphene.Grid;
 using Graphene.Rhythm.Presentation;
+using JetBrains.Annotations;
 using UnityEngine;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Graphene.Rhythm.Game
 {
     public class Player : MonoBehaviour
     {
+        public event Action OnHit, OnDie;
+
+        public int MaxHp = 3;
+        [HideInInspector] public int Hp;
+
         public float ColisionRadius = 0.6f;
         public int ViewArea = 3;
         public bool Climbing;
+
+        public Animator Animator;
+
+        [Space] public int ProjectilesCount;
+        public float ProjectileSpeed;
+
+
         private LayerMask _coinMask;
         private LayerMask _obstacleMask;
 
-        public Animator Animator;
-        
-        [Space]
-        public int ProjectilesCount;
-        public float ProjectileSpeed;
-
         private IGridInfo _gr;
         private GridSystem _grid;
-        private Vector3 _position;
-        private InfiniteHexGrid.FloatFunc GetY;
-        private Vector3 _lastPosition;
-
-        private Transform camera;
-
+        private MenuManager _menuManager;
         private Metronome _metronome;
+
+        private InfiniteHexGrid.FloatFunc GetY;
+
+        private Vector3 _lastPosition;
+        private Vector3 _position;
+
         private float _acceleration;
 
         private int count;
-        private MenuManager _menuManager;
         private bool _playing, _playOk;
         private Vector3 _iniPos;
         private float _travelZ;
         private float _lastMove;
         private float _t = 0;
         private bool _hit;
-        
+
         private Transform[] _projectiles;
         private int _current;
         private float _lastTime;
+        private Collider _lastHit;
+        private float _coinCollected;
+        private int _combo;
+        private float _inivicible;
+
 
         private void Awake()
         {
@@ -54,11 +67,12 @@ namespace Graphene.Rhythm.Game
                 _projectiles[i] = Instantiate(go).transform;
                 _projectiles[i].position = Vector3.one * -1000;
             }
-            
+
             _coinMask = (LayerMask.GetMask("Coin"));
             _obstacleMask = (LayerMask.GetMask("Obstacle"));
-        }
 
+            Hp = MaxHp;
+        }
 
         private void Start()
         {
@@ -66,13 +80,12 @@ namespace Graphene.Rhythm.Game
             _menuManager = FindObjectOfType<MenuManager>();
             _menuManager.OnStartGame += StartGame;
             _menuManager.OnRestartGame += RestartGame;
+            _menuManager.OnCoinEvent += AddLife;
 
             _iniPos = transform.position;
 
             _grid.gameObject.GetComponent<CoinGenerator>().SetTarget(transform);
             _grid.gameObject.GetComponent<ObstaclesGenerator>().SetTarget(transform);
-
-            camera = Camera.main.transform;
 
             if (_grid.Grid == null)
             {
@@ -94,6 +107,14 @@ namespace Graphene.Rhythm.Game
             _metronome.Beat += Beat;
         }
 
+        private void AddLife()
+        {
+            if (Hp == MaxHp) return;
+
+            Hp++;
+            OnHit?.Invoke();
+        }
+
         private void SetPos()
         {
             _position = _gr.worldPos;
@@ -102,8 +123,8 @@ namespace Graphene.Rhythm.Game
 
         private void StartGame()
         {
-            _lastTime = _metronome.ElapsedTime;
-            Animator.SetFloat("Speed", _metronome.Bpm / 60f);
+            if (_metronome != null)
+                _lastTime = _metronome.ElapsedTime;
             _playOk = true;
         }
 
@@ -156,12 +177,14 @@ namespace Graphene.Rhythm.Game
 
             GetInput();
         }
-        
+
         private void UpdateProjectilesPosition()
         {
             var delta = _metronome.ElapsedTime - _lastTime;
             for (int i = 0; i < ProjectilesCount; i++)
             {
+                if (!_projectiles[i].gameObject.activeSelf) continue;
+
                 _projectiles[i].position = new Vector3(_projectiles[i].position.x + delta * ProjectileSpeed, GetY(_projectiles[i].position), _projectiles[i].position.z);
             }
             _lastTime = _metronome.ElapsedTime;
@@ -184,17 +207,45 @@ namespace Graphene.Rhythm.Game
 
             foreach (var hit in hits)
             {
-                Die();
+                if (hit.collider == _lastHit) continue;
+
+                _lastHit = hit.collider;
+
+                if (hit.transform.CompareTag("bullet"))
+                    hit.transform.parent.gameObject.SetActive(false);
+
+                Hit();
                 return;
+            }
+        }
+
+        private void Hit()
+        {
+            if(Time.time - _inivicible < 1) return;
+            
+            Hp -= 1;
+
+            _inivicible = Time.time;
+            
+            OnHit?.Invoke();
+
+            if (Hp <= 0)
+                Die();
+            else
+            {
+                Animator.SetTrigger("Hit");
+                _metronome.PlayEvent(1);
             }
         }
 
         private void Die()
         {
-            _metronome.PlayEvent(1);
+            OnDie?.Invoke();
+
+            _metronome.PlayEvent(5);
             Animator.SetTrigger("Dead");
-            Animator.SetFloat("Speed", 0);
             _playing = false;
+            _playOk = false;
 
             Invoke(nameof(EndGame), 1);
         }
@@ -213,6 +264,10 @@ namespace Graphene.Rhythm.Game
 
         private void CoinCollected()
         {
+            _combo += 1;
+
+            _coinCollected = Time.time;
+            _menuManager.Combo(_combo);
             _menuManager.CollectCoin(1);
             _metronome.PlayEvent(0);
         }
@@ -229,7 +284,6 @@ namespace Graphene.Rhythm.Game
             {
                 Climbing = false;
             }
-            Animator.SetBool("Climbing", Climbing);
 
             // transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
         }
@@ -259,11 +313,15 @@ namespace Graphene.Rhythm.Game
 
                 l = Mathf.Sin(l * Mathf.PI);
 
-                if (l < 0.4f)
+                if (l < 0.46f)
                 {
                     _menuManager.HitFeedBack(l);
                     MoveTo(-Input.GetAxis("Horizontal"));
                     _hit = true;
+                }
+                else if (l > 0.6f)
+                {
+                    ResetCombo();
                 }
             }
         }
@@ -279,9 +337,10 @@ namespace Graphene.Rhythm.Game
 
             Shoot();
         }
-        
+
         private void Shoot()
         {
+            _projectiles[_current].gameObject.SetActive(true);
             _projectiles[_current].position = _position;
 
             _current = (_current + 1) % ProjectilesCount;
@@ -289,6 +348,15 @@ namespace Graphene.Rhythm.Game
 
         private void Beat(int index)
         {
+            Animator.SetInteger("BeatTempo", index);
+            Animator.SetTrigger("Beat");
+
+            if (Time.time - _coinCollected > 1)
+            {
+                ResetCombo();
+                _coinCollected = Time.time;
+            }
+
             _t = 0;
 
             if (!_hit)
@@ -301,8 +369,10 @@ namespace Graphene.Rhythm.Game
             _playing = true;
         }
 
-        private void DoAction()
+        private void ResetCombo()
         {
+            _combo = 0;
+            _menuManager.ComboReset();
         }
     }
 }

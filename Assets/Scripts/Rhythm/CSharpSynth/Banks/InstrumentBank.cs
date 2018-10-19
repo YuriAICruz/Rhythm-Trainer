@@ -46,6 +46,7 @@ namespace CSharpSynth.Banks
                 Bank.Add(null);
             for (int x = 0; x < BankManager.DEFAULT_DRUMBANK_SIZE; x++)
                 DrumBank.Add(null);
+            
             //UnitySynth
             //loadStream(File.Open(bankfile, FileMode.Open), Path.GetDirectoryName(bankfile) + "\\", null, null);
             TextAsset bankFile = Resources.Load(bankfile) as TextAsset;

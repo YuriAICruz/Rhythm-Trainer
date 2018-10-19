@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using Graphene.UiGenerics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,20 +9,25 @@ namespace Graphene.Rhythm.Presentation
 {
     public class MenuManager : MonoBehaviour
     {
-        public event Action OnStartGame, OnRestartGame, OnGameOver;
+        public event Action OnStartGame, OnRestartGame, OnGameOver, OnCoinEvent;
 
         public CanvasGroupView MainMenu;
         public CanvasGroupView GameOver;
         public CanvasGroupView ScoreScreen;
 
+        public GameObject Win, Lose;
+
         public Transform FeedBack;
 
         public Text[] Coins;
+        public Text[] Combos;
 
-        int _coins;
+        public int _coins;
+        public int _totalCoins;
         private bool _gameover;
         private float _t;
         private Vector3 _scale;
+        private int _combo;
 
         private void Start()
         {
@@ -31,8 +37,11 @@ namespace Graphene.Rhythm.Presentation
             ScoreScreen.Hide();
         }
 
-        public void EndGame()
+        public void EndGame(bool win = false)
         {
+            Win.SetActive(win);
+            Lose.SetActive(!win);
+            
             OnGameOver?.Invoke();
 
             MainMenu.Hide();
@@ -45,7 +54,7 @@ namespace Graphene.Rhythm.Presentation
         private void Update()
         {
             AnimateFeedback();
-            
+
             if (!_gameover) return;
 
             if (Input.GetMouseButtonDown(0))
@@ -71,10 +80,11 @@ namespace Graphene.Rhythm.Presentation
 
         private void UpdateCoins()
         {
-            foreach (var coin in Coins)
-            {
-                coin.text = _coins.ToString("000");
-            }
+            StartCoroutine(Popup(Coins[0]));
+            Coins[0].text = _coins.ToString("000");
+            
+            StartCoroutine(Popup(Coins[1]));
+            Coins[1].text = _totalCoins.ToString("000");
         }
 
         public void RestartGame()
@@ -103,7 +113,15 @@ namespace Graphene.Rhythm.Presentation
 
         public void CollectCoin(int value)
         {
-            _coins += value;
+            _coins += value * ((int) (1 + _combo / 4f));
+            _totalCoins += value * ((int) (1 + _combo / 4f));
+
+            if (_coins >= 100)
+            {
+                _coins -= 100;
+                OnCoinEvent?.Invoke();
+            }
+            
             UpdateCoins();
         }
 
@@ -111,6 +129,40 @@ namespace Graphene.Rhythm.Presentation
         {
             _scale = Vector3.one * (2 - time);
             _t = 0;
+        }
+
+        public void Combo(int combo)
+        {
+            _combo = combo;
+
+            UpdateCombos();
+        }
+
+        private void UpdateCombos()
+        {
+            foreach (var combo in Combos)
+            {
+                StartCoroutine(Popup(combo));
+                combo.text = "x " + ((int) (1 + _combo / 4f)).ToString("00");
+            }
+        }
+
+        IEnumerator Popup(Text combo)
+        {
+            var t = 0f;
+            while (t < 1)
+            {
+                combo.transform.localScale = Vector3.Lerp(Vector3.one * 1.4f, Vector3.one, t);
+                yield return null;
+                t += Time.deltaTime;
+            }
+        }
+
+        public void ComboReset()
+        {
+            _combo = 0;
+
+            UpdateCombos();
         }
     }
 }

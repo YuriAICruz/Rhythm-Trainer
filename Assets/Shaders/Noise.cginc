@@ -5,7 +5,7 @@ float2 hash( float2 p ) {  						// rand in [-1,1]
      return -1. + 2.*frac(sin(p+20.)*53758.5453123);
  }
  
- float2 genNoise(float2 p){
+ float2 genNoise2(float2 p){
      float2 i = floor(p), f = frac(p);
      float2 u = f*f*(3.-2.*f);
      return lerp( lerp( dot( hash( i + float2(0.,0.) ), f - float2(0.,0.) ), 
@@ -22,8 +22,8 @@ float2 hash( float2 p ) {  						// rand in [-1,1]
   return -1.0 + 2.0 * frac(sin(p) * 43758.5453123 );
 }
  
- float genNoise(float3 p, float size){
-      float3 p0 = floor(p*size);
+ float genNoise3(float3 p){
+      float3 p0 = floor(p);
       float3 d = frac(p);
     
       float3 w = d * d * (3.0 - 2.0 * d);

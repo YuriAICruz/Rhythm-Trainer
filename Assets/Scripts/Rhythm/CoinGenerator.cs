@@ -12,7 +12,7 @@ namespace Graphene.Rhythm
         public int CoinPool;
         public float Space = 4;
         public float Offset = 0;
-        
+
         private Transform _target;
         private GameObject[] _coins;
         private TrailSystem _trail;
@@ -27,7 +27,6 @@ namespace Graphene.Rhythm
         private readonly int _mul = 6;
         private MenuManager _menuManager;
         private int _lastSide;
-        private GameMidiManager _midiManager;
         private MidiFile _midi;
         private List<float> _events;
 
@@ -36,12 +35,9 @@ namespace Graphene.Rhythm
             _coins = new GameObject[CoinPool * _mul];
 
             var go = Resources.Load<GameObject>("Pool/Coin");
-            
+
             _menuManager = FindObjectOfType<MenuManager>();
             _menuManager.OnRestartGame += RestartGame;
-
-            _midiManager = GetComponent<GameMidiManager>();
-            //_midiManager.OnMidiSet += GenerateCoins;
 
             for (int i = 0; i < CoinPool * _mul; i++)
             {
@@ -74,72 +70,39 @@ namespace Graphene.Rhythm
 
             if (_infGrid == null) return;
 
-            if (true)//_events == null)
-            {
-                var p = (int) ((_target.position.x + Space * (CoinPool / 4f)) / Space);
+            var p = (int) ((_target.position.x + Space * (CoinPool / 4f)) / Space);
 
-                if (p <= _lastPos)
-                    return;
+            if (p <= _lastPos)
+                return;
 
-                _lastPos = p;
+            _lastPos = p;
 
-                DrawCoins(new Vector3(_lastPos * Space, 0, _target.position.z));
-            }
-            else
-            {
-                var space = Space / 2f;
-                var p = (int) ((_target.position.x + space * (CoinPool / 4f)) / space);
-
-                if (p <= _lastPos)
-                    return;
-
-                _lastPos = p;
-                
-                DrawCoinsFromMidi(new Vector3(_lastPos * space, 0, _target.position.z));
-            }
+            DrawCoins(new Vector3(_lastPos * Space, 0, _target.position.z));
         }
 
         private void RestartGame()
         {
             _lastPos = 0;
         }
-        
-        
 
-        private void GenerateCoins(MidiFile midi)
-        {
-            _midi = midi;
-            //_midi.CombineTracks();
-
-            _events = new List<float>();
-            var count = 0f;
-            foreach (var midiEvent in _midi.Tracks[1].MidiEvents)
-            {
-                if(midiEvent.deltaTime == 0) continue;
-                
-                _events.Add(count);
-                count += (midiEvent.deltaTime / (float)_midiManager.bufferSize * 0.02f) * Space;
-            }
-        }
-        
 
         private void DrawCoinsFromMidi(Vector3 p)
         {
-            p.x += Offset; 
+            p.x += Offset;
             var pos = new Vector3[]
             {
                 new Vector3(p.x, 0, Mathf.Floor(p.z / Space) * Space),
                 new Vector3(p.x, 0, Mathf.Floor(p.z / Space) * Space + _trail.Step),
                 new Vector3(p.x, 0, Mathf.Floor(p.z / Space) * Space - _trail.Step),
             };
-            
-            var e = _events.Find(x => Mathf.Abs(x - p.x) <= Space*0.2);
+
+            var e = _events.Find(x => Mathf.Abs(x - p.x) <= Space * 0.2);
 
             if (e > 0)
             {
                 //Debug.Log(e);
                 p.x = e;
-                
+
                 DistributeOnPath(pos);
             }
             else
@@ -151,7 +114,7 @@ namespace Graphene.Rhythm
 
         void DrawCoins(Vector3 p)
         {
-            p.x += Offset; 
+            p.x += Offset;
             var pos = new Vector3[]
             {
                 new Vector3(p.x, 0, Mathf.Floor(p.z / Space) * Space),
@@ -161,12 +124,15 @@ namespace Graphene.Rhythm
 
             DistributeOnPath(pos);
         }
-        
+
         private void DistributeOnPath(Vector3[] pos)
         {
             var side = Random.Range(-1, 1);
-            side = (int) Mathf.Sign(side);
-            side = 0;
+
+            if (Mathf.Abs(_lastSide + side) > 3)
+                side *= -1;
+
+//            side = side == 0 ? 0 : (int) Mathf.Sign(side);
             for (int i = 0; i < pos.Length; i++)
             {
                 var outPos = _trail.TrailMath(pos[i]);
@@ -189,6 +155,7 @@ namespace Graphene.Rhythm
                     _coins[_currentCoin + i * 2 + 1].gameObject.SetActive(true);
                 }
             }
+
             _lastSide = _lastSide + side;
             _currentCoin = (_currentCoin + _mul) % CoinPool * _mul;
         }

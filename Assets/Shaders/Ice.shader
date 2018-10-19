@@ -103,7 +103,7 @@
             float frag = voronoi*0.9+0.1;//round((pow(voronoi,0.2)));
 			float nrm = voronoi;
 			
-			float noise = genNoise(IN.worldPos,20);
+			float noise = genNoise3(IN.worldPos);
 			noise = noise *0.2 + 0.8;
 			
 			float3 color = float3(1,1,1);
