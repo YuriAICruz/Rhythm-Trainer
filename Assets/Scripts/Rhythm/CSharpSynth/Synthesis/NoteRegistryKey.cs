@@ -7,13 +7,13 @@ namespace CSharpSynth.Synthesis
     public struct NoteRegistryKey
     {
         //--Variables
-        private readonly byte note;
-        private readonly byte channel;
+        private readonly int note;
+        private readonly int channel;
         //--Public Properties
-        public byte Note { get { return note; } }
-        public byte Channel { get { return channel; } }
+        public int Note { get { return note; } }
+        public int Channel { get { return channel; } }
         //--Public Methods
-        public NoteRegistryKey(byte channel, byte note)
+        public NoteRegistryKey(int channel, int note)
         {
             this.note = note;
             this.channel = channel;
@@ -30,10 +30,6 @@ namespace CSharpSynth.Synthesis
         public bool Equals(NoteRegistryKey obj)
         {
             return obj.channel == this.channel && obj.note == this.note;
-        }
-        public override int GetHashCode()
-        {
-            return BitConverter.ToInt32(new byte[4] { note, channel, 0, 0 }, 0);
         }
     }
 }

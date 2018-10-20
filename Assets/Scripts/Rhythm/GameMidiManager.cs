@@ -88,6 +88,8 @@ namespace Graphene.Rhythm
         }
 
         int _count;
+        private bool _once;
+
         private void AddLoopOffset()
         {
             _count++;
@@ -114,8 +116,9 @@ namespace Graphene.Rhythm
 
         private void StartMusic()
         {
-            if (midiSequencer.isPlaying || !_shouldPlayFile) return;
+            if (_once || midiSequencer.isPlaying || !_shouldPlayFile) return;
 
+            //_once = true;
             LoadSong(midiFilePath);
         }
 
@@ -129,7 +132,6 @@ namespace Graphene.Rhythm
             Debug.Log("Tracks.Length: " + _midi.Tracks.Length);
 
             midiSequencer.Play();
-            Debug.Log("Play");
         }
 
 
@@ -191,6 +193,7 @@ namespace Graphene.Rhythm
 #else
         private void OnAudioFilterRead(float[] data, int channels)
         {
+            //midiSequencer.SampleTime += midiStreamSynthesizer.samplesperBuffer;
             midiStreamSynthesizer.GetNext(sampleBuffer);
 
             

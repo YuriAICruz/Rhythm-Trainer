@@ -72,7 +72,16 @@ namespace Graphene.Rhythm
                     continue;
                 }
 
-                yield return new WaitForSeconds(60f / Bpm);
+                var lastTime = ElapsedTime;
+                var t = 0f;
+                
+                while (t <= 60f/Bpm)
+                {
+                    var delta = ElapsedTime - lastTime;
+                    lastTime = ElapsedTime;
+                    t += delta;
+                    yield return null;
+                }
 
                 TotalBeats++;
                 //ElapsedTime = TotalBeats * (60f / Bpm);
@@ -96,7 +105,7 @@ namespace Graphene.Rhythm
         public float GetLapse()
         {
             var bps = Bpm / 60f;
-            return ElapsedTime* bps - Mathf.Floor(ElapsedTime * bps);
+            return ElapsedTime / bps - Mathf.Floor(ElapsedTime / bps);
         }
     }
 }

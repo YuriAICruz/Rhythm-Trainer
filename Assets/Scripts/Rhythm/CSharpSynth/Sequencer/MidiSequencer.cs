@@ -43,6 +43,7 @@ namespace CSharpSynth.Sequencer
         public int SampleTime
         {
             get { return sampleTime; }
+            set { sampleTime = value; }
         }
 
         public int EndSampleTime

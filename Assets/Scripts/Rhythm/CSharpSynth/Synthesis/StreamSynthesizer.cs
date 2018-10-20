@@ -217,7 +217,7 @@ namespace CSharpSynth.Synthesis
         }
         public void NoteOff(int channel, int note)
         {
-            NoteRegistryKey r = new NoteRegistryKey((byte)channel, (byte)note);
+            NoteRegistryKey r = new NoteRegistryKey(channel, note);
             List<Voice> voice;
             if (keyRegistry.TryGetValue(r, out voice))
             {

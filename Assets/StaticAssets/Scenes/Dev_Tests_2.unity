@@ -586,7 +586,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bankFilePath: GM Bank/gm
-  midiFilePath: Midis/AnotherRetroTune.mid
+  midiFilePath: Midis/A monotonic day.mid
   bufferSize: 1024
   samplerate: 44100
   GameEvents:
@@ -619,20 +619,20 @@ MonoBehaviour:
     Instrument: 122
     Duration: 0.8
   Beep:
-  - Note: 60
-    Volume: 100
-    Instrument: 119
+  - Note: 58
+    Volume: 800
+    Instrument: 115
     Duration: 0.05
   - Note: 60
-    Volume: 100
+    Volume: 800
+    Instrument: 115
+    Duration: 0.1
+  - Note: 58
+    Volume: 800
     Instrument: 115
     Duration: 0.1
   - Note: 60
-    Volume: 100
-    Instrument: 115
-    Duration: 0.1
-  - Note: 60
-    Volume: 100
+    Volume: 800
     Instrument: 115
     Duration: 0.1
 --- !u!82 &222850541
@@ -1761,7 +1761,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &800262473
 RectTransform:
   m_ObjectHideFlags: 0
