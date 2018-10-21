@@ -315,7 +315,7 @@ namespace Graphene.Rhythm.Game
 
                 if (l < 0.46f)
                 {
-                    _menuManager.HitFeedBack(l);
+                    _menuManager.HitFeedBack(l+1);
                     MoveTo(-Input.GetAxis("Horizontal"));
                     _hit = true;
                 }
@@ -360,7 +360,7 @@ namespace Graphene.Rhythm.Game
             _t = 0;
 
             if (!_hit)
-                _menuManager.HitFeedBack(1);
+                _menuManager.HitFeedBack(0);
 
             _hit = false;
 

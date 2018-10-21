@@ -58,7 +58,7 @@ Shader "Unlit/Vignete"
                 float r = sqrt(pow(center.x,2) + pow(center.y,2));
                 float scr = r * n;
                 
-                int index = atan2((center.y), (center.x))*_Index + _Index;
+                //int index = atan2((center.y), (center.x))*_Index + _Index;
                 //int index = atan2((screen.y+1)*0.5, (screen.x+1)*0.5)*_Index+_Index;
                 
                 //float scr = abs(screen.x-0.5)*n + abs(screen.y-0.5) * n; 
@@ -66,7 +66,7 @@ Shader "Unlit/Vignete"
                 color.rgb = _Color;//hsv2rgb( float3(0.6,1,1) );
                 
                 
-                color.a = scr*(_FFT[index])*_Intensity;
+                color.a = scr*_Intensity;
                 return color;
             }
             

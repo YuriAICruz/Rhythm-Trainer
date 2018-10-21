@@ -28,10 +28,9 @@ namespace Graphene.Rhythm.Presentation
 
         private void Resize(int obj)
         {
-            Debug.Log(Time.time - _lastTime);
             _lastTime = Time.time;
             _scale = _iniScale  + Vector3.up * 1.4f;
-            transform.localScale = _scale;
+            transform.localScale = _iniScale;
         }
 
         private void Update()
@@ -47,7 +46,7 @@ namespace Graphene.Rhythm.Presentation
             
             //Image.color = new Color(1, 1, 1, l);
 
-            transform.localScale = Vector3.Lerp(transform.localScale, _iniScale, Time.deltaTime*4);
+            transform.localScale = Vector3.Lerp(transform.localScale, _scale, Time.deltaTime*4);
             
             transform.position = _iniPos + Dir * Dist * l;
         }

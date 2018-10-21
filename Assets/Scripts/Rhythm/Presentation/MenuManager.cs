@@ -18,6 +18,7 @@ namespace Graphene.Rhythm.Presentation
         public GameObject Win, Lose;
 
         public Transform FeedBack;
+        public float FeedbackScaleSize;
 
         public Text[] Coins;
         public Text[] Combos;
@@ -127,7 +128,7 @@ namespace Graphene.Rhythm.Presentation
 
         public void HitFeedBack(float time)
         {
-            _scale = Vector3.one * (2 - time);
+            _scale = Vector3.one + Vector3.one * (FeedbackScaleSize * time);
             _t = 0;
         }
 

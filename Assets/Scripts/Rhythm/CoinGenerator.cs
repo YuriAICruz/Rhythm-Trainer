@@ -10,7 +10,6 @@ namespace Graphene.Rhythm
     public class CoinGenerator : MonoBehaviour
     {
         public int CoinPool;
-        public float Space = 4;
         public float Offset = 0;
 
         private Transform _target;
@@ -52,8 +51,14 @@ namespace Graphene.Rhythm
 
             _infGrid = (InfiniteHexGrid) _gridSystem.Grid;
             _metronome = FindObjectOfType<Metronome>();
+            _metronome.Beat += PopCoin;
 
             _infGrid = (InfiniteHexGrid) _gridSystem.Grid;
+        }
+
+        private void PopCoin(int index)
+        {
+            DrawCoins(new Vector3((_metronome.ElapsedTime + 22) * _gridSystem.Widith * _metronome.Bpm / 60f, 0, _target.position.z));
         }
 
         public void SetTarget(Transform target)
@@ -67,17 +72,6 @@ namespace Graphene.Rhythm
 
             if (_infGrid == null)
                 _infGrid = (InfiniteHexGrid) _gridSystem.Grid;
-
-            if (_infGrid == null) return;
-
-            var p = (int) ((_target.position.x + Space * (CoinPool / 4f)) / Space);
-
-            if (p <= _lastPos)
-                return;
-
-            _lastPos = p;
-
-            DrawCoins(new Vector3(_lastPos * Space, 0, _target.position.z));
         }
 
         private void RestartGame()
@@ -85,41 +79,16 @@ namespace Graphene.Rhythm
             _lastPos = 0;
         }
 
-
-        private void DrawCoinsFromMidi(Vector3 p)
-        {
-            p.x += Offset;
-            var pos = new Vector3[]
-            {
-                new Vector3(p.x, 0, Mathf.Floor(p.z / Space) * Space),
-                new Vector3(p.x, 0, Mathf.Floor(p.z / Space) * Space + _trail.Step),
-                new Vector3(p.x, 0, Mathf.Floor(p.z / Space) * Space - _trail.Step),
-            };
-
-            var e = _events.Find(x => Mathf.Abs(x - p.x) <= Space * 0.2);
-
-            if (e > 0)
-            {
-                //Debug.Log(e);
-                p.x = e;
-
-                DistributeOnPath(pos);
-            }
-            else
-            {
-                //Debug.Log(e);
-            }
-        }
-
-
         void DrawCoins(Vector3 p)
         {
+            if (_infGrid == null) return;
+            
             p.x += Offset;
             var pos = new Vector3[]
             {
-                new Vector3(p.x, 0, Mathf.Floor(p.z / Space) * Space),
-                new Vector3(p.x, 0, Mathf.Floor(p.z / Space) * Space + _trail.Step),
-                new Vector3(p.x, 0, Mathf.Floor(p.z / Space) * Space - _trail.Step),
+                new Vector3(p.x, 0, p.z),
+                new Vector3(p.x, 0, p.z + _trail.Step),
+                new Vector3(p.x, 0, p.z - _trail.Step),
             };
 
             DistributeOnPath(pos);
@@ -131,8 +100,7 @@ namespace Graphene.Rhythm
 
             if (Mathf.Abs(_lastSide + side) > 3)
                 side *= -1;
-
-//            side = side == 0 ? 0 : (int) Mathf.Sign(side);
+            
             for (int i = 0; i < pos.Length; i++)
             {
                 var outPos = _trail.TrailMath(pos[i]);
@@ -144,7 +112,7 @@ namespace Graphene.Rhythm
 
                 _coins[_currentCoin + i * 2].transform.position = outPos[0];
                 _coins[_currentCoin + i * 2].gameObject.SetActive(true);
-
+                
                 if (split)
                 {
                     outPos[1].z = Mathf.Floor(outPos[1].z / _gridSystem.Widith) * _gridSystem.Widith;

@@ -35,14 +35,14 @@ namespace Graphene.Rhythm.Presentation
         {
             var s = AnalyzeSound();
             _lastPitch = Mathf.Lerp(_lastPitch, s, Time.deltaTime * Smooth);
-            // _mat.SetFloat("_Intensity", _lastPitch);
+            _mat.SetFloat("_Intensity", _lastPitch);
         }
 
         float AnalyzeSound()
         {
             AudioListener.GetOutputData(samples, 0);
             
-            _mat.SetFloatArray("_FFT", samples);
+            //_mat.SetFloatArray("_FFT", samples);
             var sum = 0f;
             for (var i = 0; i < qSamples; i++)
             {

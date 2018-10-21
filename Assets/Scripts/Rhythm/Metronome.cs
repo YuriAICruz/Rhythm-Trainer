@@ -24,6 +24,7 @@ namespace Graphene.Rhythm
         List<RoutineAction> _routineBeat = new List<RoutineAction>();
         private MenuManager _menuManager;
         private bool _canPlay;
+        private float _t;
 
         public void BeatSubscribe(RoutineAction action)
         {
@@ -59,7 +60,7 @@ namespace Graphene.Rhythm
 
         IEnumerator Counter()
         {
-            var i = 0;
+            var i = 1;
             ElapsedTime = 0;
             while (true)
             {
@@ -73,13 +74,13 @@ namespace Graphene.Rhythm
                 }
 
                 var lastTime = ElapsedTime;
-                var t = 0f;
+                _t = 0f;
                 
-                while (t <= 60f/Bpm)
+                while (_t <= 60f/Bpm)
                 {
                     var delta = ElapsedTime - lastTime;
                     lastTime = ElapsedTime;
-                    t += delta;
+                    _t += delta;
                     yield return null;
                 }
 
@@ -104,8 +105,7 @@ namespace Graphene.Rhythm
 
         public float GetLapse()
         {
-            var bps = Bpm / 60f;
-            return ElapsedTime / bps - Mathf.Floor(ElapsedTime / bps);
+            return _t * Bpm/60f;
         }
     }
 }

@@ -34,6 +34,8 @@ namespace Graphene.Rhythm
 
         private bool _shouldPlayFile;
 
+        public float _BeatOffset = 0f;
+        
         [Header("DinamicNotes")] public SoundEvent[] GameEvents;
         public SoundEvent[] Beep;
 
@@ -88,7 +90,6 @@ namespace Graphene.Rhythm
         }
 
         int _count;
-        private bool _once;
 
         private void AddLoopOffset()
         {
@@ -116,9 +117,8 @@ namespace Graphene.Rhythm
 
         private void StartMusic()
         {
-            if (_once || midiSequencer.isPlaying || !_shouldPlayFile) return;
+            if (midiSequencer.isPlaying || !_shouldPlayFile) return;
 
-            //_once = true;
             LoadSong(midiFilePath);
         }
 
@@ -126,10 +126,11 @@ namespace Graphene.Rhythm
         private void LoadSong(string midiPath)
         {
             _midi = new MidiFile(midiPath);
-            midiSequencer.LoadMidi(_midi, false, 0);
-
             Debug.Log("BeatsPerMinute: " + _midi.BeatsPerMinute);
             Debug.Log("Tracks.Length: " + _midi.Tracks.Length);
+            
+            midiSequencer.LoadMidi(_midi, false, 0);
+
 
             midiSequencer.Play();
         }
@@ -152,14 +153,13 @@ namespace Graphene.Rhythm
             if (_infGrid == null)
                 _infGrid = (InfiniteHexGrid) _gridSystem.Grid;
 
-            _metronome.SetElapsedTime((midiSequencer.SampleTime / (float) midiStreamSynthesizer.samplesperBuffer) * 0.02f + _loopOffset);
+            _metronome.SetElapsedTime((midiSequencer.SampleTime / (float) midiStreamSynthesizer.samplesperBuffer) * 0.02f + _loopOffset + _BeatOffset);
 
             if (midiSequencer.isPlaying && !_shouldPlayFile)
             {
                 midiSequencer.Stop(true);
             }
         }
-
 
         IEnumerator DoBeep(int i)
         {
@@ -174,26 +174,9 @@ namespace Graphene.Rhythm
             yield return new WaitForSeconds(duration);
             midiStreamSynthesizer.NoteOff(channel, note);
         }
-
-#if UNITY_WEBGL
-        private void SetAudioPosition(int position)
-        {
-            _position = position;
-        }
         
-        private void Reader(float[] data)
-        {
-            midiStreamSynthesizer.GetNext(sampleBuffer);
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                data[i] = sampleBuffer[i] * gain;
-            }
-        }
-#else
         private void OnAudioFilterRead(float[] data, int channels)
         {
-            //midiSequencer.SampleTime += midiStreamSynthesizer.samplesperBuffer;
             midiStreamSynthesizer.GetNext(sampleBuffer);
 
             
@@ -202,6 +185,5 @@ namespace Graphene.Rhythm
                 data[i] = sampleBuffer[i] * gain;
             }
         }
-#endif
     }
 }
