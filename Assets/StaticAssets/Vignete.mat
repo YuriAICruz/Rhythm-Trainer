@@ -64,7 +64,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Index: 128
-    - _Intensity: 0.030441606
+    - _Intensity: 0.1458684
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
