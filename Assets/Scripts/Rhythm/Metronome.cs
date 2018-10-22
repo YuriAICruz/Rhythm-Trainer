@@ -62,6 +62,7 @@ namespace Graphene.Rhythm
         {
             var i = 1;
             ElapsedTime = 0;
+            var iniTime = 0f;
             while (true)
             {
                 if (!_canPlay)
@@ -70,6 +71,7 @@ namespace Graphene.Rhythm
                     TotalBeats = 0;
                     ElapsedTime = 0;
                     yield return null;
+                    iniTime = Time.time;
                     continue;
                 }
 
@@ -78,10 +80,10 @@ namespace Graphene.Rhythm
                 
                 while (_t <= 60f/Bpm)
                 {
+                    yield return null;
                     var delta = ElapsedTime - lastTime;
                     lastTime = ElapsedTime;
                     _t += delta;
-                    yield return null;
                 }
 
                 TotalBeats++;

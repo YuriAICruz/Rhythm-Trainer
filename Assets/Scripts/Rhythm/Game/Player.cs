@@ -224,6 +224,8 @@ namespace Graphene.Rhythm.Game
             if(Time.time - _inivicible < 1) return;
             
             Hp -= 1;
+            
+            ResetCombo();
 
             _inivicible = Time.time;
             
@@ -313,7 +315,7 @@ namespace Graphene.Rhythm.Game
 
                 l = Mathf.Sin(l * Mathf.PI);
 
-                if (l < 0.46f)
+                if (l < 0.6f)
                 {
                     _menuManager.HitFeedBack(l+1);
                     MoveTo(-Input.GetAxis("Horizontal"));
@@ -351,7 +353,7 @@ namespace Graphene.Rhythm.Game
             Animator.SetInteger("BeatTempo", index);
             Animator.SetTrigger("Beat");
 
-            if (Time.time - _coinCollected > 1)
+            if (Time.time - _coinCollected > 0.5f)
             {
                 ResetCombo();
                 _coinCollected = Time.time;

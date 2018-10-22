@@ -13,8 +13,8 @@ namespace CSharpSynth.Sequencer
         private MidiFile _MidiFile;
 
         private StreamSynthesizer synth;
-        private int[] currentPrograms;
-        private List<byte> blockList;
+        public int[] currentPrograms;
+        private List<int> blockList;
         private double PitchWheelSemitoneRange = 2.0;
         private bool playing = false;
         private bool looping = false;
@@ -24,7 +24,7 @@ namespace CSharpSynth.Sequencer
         private int eventIndex;
 
         //--Events
-        public delegate void NoteOnEventHandler(int channel, int note, int velocity);
+        public delegate void NoteOnEventHandler(int channel, int note, int velocity, object[] param);
 
         public event NoteOnEventHandler NoteOnEvent;
 
@@ -33,6 +33,7 @@ namespace CSharpSynth.Sequencer
         public event NoteOffEventHandler NoteOffEvent;
 
         private uint _track;
+        private uint _bpm;
 
         //--Public Properties
         public bool isPlaying
@@ -56,10 +57,9 @@ namespace CSharpSynth.Sequencer
             get { return new TimeSpan(0, 0, (int) SynthHelper.getTimeFromSample(synth.SampleRate, (int) _MidiFile.Tracks[_track].TotalTime)); }
         }
 
-        public TimeSpan Time
+        public float Time
         {
-            get { return new TimeSpan(0, 0, (int) SynthHelper.getTimeFromSample(synth.SampleRate, sampleTime)); }
-            set { SetTime(value); }
+            get { return SynthHelper.getTimeFromSample(synth.SampleRate, sampleTime); }
         }
 
         public double PitchWheelRange
@@ -74,7 +74,7 @@ namespace CSharpSynth.Sequencer
             currentPrograms = new int[16]; //16 channels
             this.synth = synth;
             this.synth.setSequencer(this);
-            blockList = new List<byte>();
+            blockList = new List<int>();
             seqEvt = new MidiSequencerEvent();
         }
 
@@ -104,12 +104,13 @@ namespace CSharpSynth.Sequencer
 
         public event Action OnLoop;
 
-        public bool LoadMidi(MidiFile midi, bool UnloadUnusedInstruments, uint track)
+        public bool LoadMidi(MidiFile midi, bool unloadUnusedInstruments, uint track)
         {
             if (playing == true)
                 return false;
             _track = track;
             _MidiFile = midi;
+            _bpm = _MidiFile.BeatsPerMinute;
             if (_MidiFile.SequencerReady == false)
             {
                 try
@@ -134,7 +135,7 @@ namespace CSharpSynth.Sequencer
                     //Set total time to proper value
                     _MidiFile.Tracks[_track].TotalTime = _MidiFile.Tracks[_track].MidiEvents[_MidiFile.Tracks[_track].MidiEvents.Length - 1].deltaTime;
                     //reset tempo
-                    _MidiFile.BeatsPerMinute = 120;
+                    _MidiFile.BeatsPerMinute = _bpm;
                     //mark midi as ready for sequencing
                     _MidiFile.SequencerReady = true;
                 }
@@ -146,7 +147,7 @@ namespace CSharpSynth.Sequencer
                 }
             }
             blockList.Clear();
-            if (UnloadUnusedInstruments == true)
+            if (unloadUnusedInstruments == true)
             {
                 if (synth.SoundBank == null)
                 {
@@ -166,7 +167,7 @@ namespace CSharpSynth.Sequencer
             return true;
         }
 
-        public bool LoadMidi(string file, bool UnloadUnusedInstruments, uint track = 0)
+        public bool LoadMidi(string file, bool unloadUnusedInstruments, uint track = 0)
         {
             if (playing == true)
                 return false;
@@ -181,7 +182,7 @@ namespace CSharpSynth.Sequencer
                 Debug.Log("Error Loading Midi:\n" + ex.Message);
                 return false;
             }
-            return LoadMidi(mf, UnloadUnusedInstruments, track);
+            return LoadMidi(mf, unloadUnusedInstruments, track);
         }
 
         public void Play()
@@ -194,7 +195,7 @@ namespace CSharpSynth.Sequencer
             //Clear vol, pan, and tune
             ResetControllers();
             //set bpm
-            _MidiFile.BeatsPerMinute = 120;
+            _MidiFile.BeatsPerMinute = _bpm;
             //Let the synth know that the sequencer is ready.
             eventIndex = 0;
             
@@ -213,7 +214,7 @@ namespace CSharpSynth.Sequencer
 
         public bool isChannelMuted(int channel)
         {
-            if (blockList.Contains((byte) channel))
+            if (blockList.Contains(channel))
                 return true;
             return false;
         }
@@ -221,20 +222,20 @@ namespace CSharpSynth.Sequencer
         public void MuteChannel(int channel)
         {
             if (channel > -1 && channel < 16)
-                if (blockList.Contains((byte) channel) == false)
-                    blockList.Add((byte) channel);
+                if (blockList.Contains(channel) == false)
+                    blockList.Add(channel);
         }
 
         public void UnMuteChannel(int channel)
         {
             if (channel > -1 && channel < 16)
-                blockList.Remove((byte) channel);
+                blockList.Remove(channel);
         }
 
         public void MuteAllChannels()
         {
             for (int x = 0; x < 16; x++)
-                blockList.Add((byte) x);
+                blockList.Add(x);
         }
 
         public void UnMuteAllChannels()
@@ -268,7 +269,7 @@ namespace CSharpSynth.Sequencer
                     //Clear vol, pan, and tune
                     ResetControllers();
                     //set bpm
-                    _MidiFile.BeatsPerMinute = 120;
+                    _MidiFile.BeatsPerMinute = _bpm;
                     //Let the synth know that the sequencer is ready.
                     eventIndex = 0;
                 }
@@ -315,7 +316,7 @@ namespace CSharpSynth.Sequencer
                         if (blockList.Contains(midiEvent.channel))
                             return;
                         if (this.NoteOnEvent != null)
-                            this.NoteOnEvent(midiEvent.channel, midiEvent.parameter1, midiEvent.parameter2);
+                            this.NoteOnEvent(midiEvent.channel, midiEvent.parameter1, midiEvent.parameter2, midiEvent.Parameters);
                         synth.NoteOn(midiEvent.channel, midiEvent.parameter1, midiEvent.parameter2, currentPrograms[midiEvent.channel]);
                         break;
                     case MidiHelper.MidiChannelEvent.Note_Off:
@@ -355,7 +356,7 @@ namespace CSharpSynth.Sequencer
                 switch (midiEvent.midiMetaEvent)
                 {
                     case MidiHelper.MidiMetaEvent.Tempo:
-                        _MidiFile.BeatsPerMinute = MidiHelper.MicroSecondsPerMinute / System.Convert.ToUInt32(midiEvent.Parameters[_track]);
+                        _MidiFile.BeatsPerMinute = MidiHelper.MicroSecondsPerMinute / System.Convert.ToUInt32(midiEvent.Parameters[0]);
                         break;
                     default:
                         break;
@@ -375,12 +376,12 @@ namespace CSharpSynth.Sequencer
         //--Private Methods
         private int DeltaTimetoSamples(uint DeltaTime)
         {
-            return SynthHelper.getSampleFromTime(synth.SampleRate, (DeltaTime * (60.0f / (((int) _MidiFile.BeatsPerMinute) * _MidiFile.MidiHeader.DeltaTiming))));
+            return SynthHelper.getSampleFromTime(synth.SampleRate, (DeltaTime * (60.0f / (((int) _MidiFile.BeatsPerMinute) * (float)_MidiFile.MidiHeader.DeltaTiming))));
         }
 
-        private void SetTime(TimeSpan time)
+        public void SetTime(float time)
         {
-            int _stime = SynthHelper.getSampleFromTime(synth.SampleRate, (float) time.TotalSeconds);
+            int _stime = SynthHelper.getSampleFromTime(synth.SampleRate, time);
             if (_stime > sampleTime)
             {
                 SilentProcess(_stime - sampleTime);
@@ -392,7 +393,7 @@ namespace CSharpSynth.Sequencer
                 sampleTime = 0;
                 Array.Clear(currentPrograms, 0, currentPrograms.Length);
                 ResetControllers();
-                _MidiFile.BeatsPerMinute = 120;
+                _MidiFile.BeatsPerMinute = _bpm;
                 eventIndex = 0;
                 SilentProcess(_stime);
             }

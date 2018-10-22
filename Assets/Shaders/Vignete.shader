@@ -66,7 +66,7 @@ Shader "Unlit/Vignete"
                 color.rgb = _Color;//hsv2rgb( float3(0.6,1,1) );
                 
                 
-                color.a = scr*_Intensity;
+                color.a = scr*_Intensity - 0.2f;
                 return color;
             }
             

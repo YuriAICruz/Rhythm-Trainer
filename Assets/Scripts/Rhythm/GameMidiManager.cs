@@ -26,16 +26,16 @@ namespace Graphene.Rhythm
         [Header("Paths")] public string bankFilePath = "GM Bank/gm";
         public string midiFilePath = "Midis/Groove.mid";
 
-        [Header("Stream Options")]
-        public int bufferSize = 1024;
-        
+        [Header("Stream Options")] public int bufferSize = 1024;
+
         private float[] sampleBuffer;
         public int samplerate = 44100;
+        [SerializeField] private int _polyCount = 40;
 
         private bool _shouldPlayFile;
 
         public float _BeatOffset = 0f;
-        
+
         [Header("DinamicNotes")] public SoundEvent[] GameEvents;
         public SoundEvent[] Beep;
 
@@ -54,11 +54,17 @@ namespace Graphene.Rhythm
         private int _position;
         private float _loopOffset;
 
+        int _count;
+
+        private float _lastNote;
+        private float _iniTime;
+        private bool isPlaying;
+
         #endregion
 
         void Awake()
         {
-            midiStreamSynthesizer = new StreamSynthesizer(samplerate, 2, bufferSize, 40);
+            midiStreamSynthesizer = new StreamSynthesizer(samplerate, 2, bufferSize, _polyCount);
             sampleBuffer = new float[midiStreamSynthesizer.BufferSize];
 
             midiStreamSynthesizer.LoadBank(bankFilePath);
@@ -89,12 +95,10 @@ namespace Graphene.Rhythm
 #endif
         }
 
-        int _count;
-
         private void AddLoopOffset()
         {
             _count++;
-            _loopOffset = (midiSequencer.SampleTime / (float) midiStreamSynthesizer.samplesperBuffer) *0.02f * _count;
+            _loopOffset = (midiSequencer.SampleTime / (float) midiStreamSynthesizer.samplesperBuffer) * 0.02f * _count;
             Debug.Log("Reset: " + _loopOffset);
         }
 
@@ -106,6 +110,7 @@ namespace Graphene.Rhythm
 
         private void StopMetronome()
         {
+            isPlaying = false;
             _shouldPlayFile = false;
         }
 
@@ -117,24 +122,67 @@ namespace Graphene.Rhythm
 
         private void StartMusic()
         {
-            if (midiSequencer.isPlaying || !_shouldPlayFile) return;
+            if (isPlaying || midiSequencer.isPlaying || !_shouldPlayFile) return;
 
             LoadSong(midiFilePath);
         }
 
+        IEnumerator PlayMidi(string midiPath)
+        {
+            isPlaying = true;
+            _midi = new MidiFile(midiPath);
+            midiSequencer.LoadMidi(_midi, false, 0);
+
+            var t = 0f;
+            var eventIndex = 0;
+
+            while (isPlaying)
+            {
+                var st = midiStreamSynthesizer.SampleRate * t;
+                while (eventIndex < _midi.Tracks[0].EventCount && _midi.Tracks[0].MidiEvents[eventIndex].deltaTime < (st))
+                {
+                    midiSequencer.ProcessMidiEvent(_midi.Tracks[0].MidiEvents[eventIndex]);
+                    eventIndex++;
+                }
+
+                yield return null;
+                t += Time.deltaTime;
+
+                _metronome.SetElapsedTime(t);
+            }
+            midiStreamSynthesizer.NoteOffAll(true);
+        }
 
         private void LoadSong(string midiPath)
         {
             _midi = new MidiFile(midiPath);
-            Debug.Log("BeatsPerMinute: " + _midi.BeatsPerMinute);
-            Debug.Log("Tracks.Length: " + _midi.Tracks.Length);
-            
+
             midiSequencer.LoadMidi(_midi, false, 0);
 
+            midiSequencer.NoteOnEvent += Note;
 
             midiSequencer.Play();
+            _iniTime = Time.time;
         }
 
+        private void Note(int channel, int note, int velocity, object[] param)
+        {
+            if (false)//note == 33)
+            {
+                Debug.Log(
+                    "channel: " + channel +
+                    " Param (0-1-2): (" + param[0] + " - " + param[1] + " - " + param[2] + ")" +
+                    " Instrument: " + midiSequencer.currentPrograms[channel] + 
+                    " BPM: " + (int) (60f / (midiSequencer.Time - _lastNote)) +
+                    " Delta: " + (midiSequencer.Time - _lastNote) +
+                    " Time: " + midiSequencer.Time +
+                    " SampleRate: " + midiStreamSynthesizer.SampleRate
+                );
+                _lastNote = midiSequencer.Time;
+            }
+            
+            _metronome.SetElapsedTime(midiSequencer.Time + _loopOffset + _BeatOffset);
+        }
 
         // 0 - Coin
         // 1 - Player Hit
@@ -152,8 +200,6 @@ namespace Graphene.Rhythm
         {
             if (_infGrid == null)
                 _infGrid = (InfiniteHexGrid) _gridSystem.Grid;
-
-            _metronome.SetElapsedTime((midiSequencer.SampleTime / (float) midiStreamSynthesizer.samplesperBuffer) * 0.02f + _loopOffset + _BeatOffset);
 
             if (midiSequencer.isPlaying && !_shouldPlayFile)
             {
@@ -174,15 +220,24 @@ namespace Graphene.Rhythm
             yield return new WaitForSeconds(duration);
             midiStreamSynthesizer.NoteOff(channel, note);
         }
-        
+
         private void OnAudioFilterRead(float[] data, int channels)
         {
-            midiStreamSynthesizer.GetNext(sampleBuffer);
-
-            
-            for (int i = 0; i < data.Length; i++)
+            try
             {
-                data[i] = sampleBuffer[i] * gain;
+                midiStreamSynthesizer.GetNext(sampleBuffer);
+
+                for (int i = 0; i < data.Length; i++)
+                {
+                    data[i] = sampleBuffer[i] * gain;
+                }
+            
+                _metronome.SetElapsedTime(midiSequencer.Time + _loopOffset + _BeatOffset);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+                throw;
             }
         }
     }

@@ -190,7 +190,7 @@ namespace CSharpSynth.Synthesis
                     return;
             }
             // Create a key for this event
-            NoteRegistryKey r = new NoteRegistryKey((byte)channel, (byte)note);
+            NoteRegistryKey r = new NoteRegistryKey(channel, note);
             // Get the correct instrument depending if it is a drum or not
             if (channel == 9)
                 freeVoice.setInstrument(bank.getInstrument(program, true));
@@ -243,17 +243,7 @@ namespace CSharpSynth.Synthesis
             }
             keyRegistry.Clear();
         }
-        public void GetNext(byte[] buffer)
-        {//Call this to process the next part of audio and return it in raw form.
-            ClearWorkingBuffer();
-            FillWorkingBuffer();
-            for (int x = 0; x < effects.Count; x++)
-            {
-                effects[x].doEffect(sampleBuffer);
-            }
-            ConvertBuffer(sampleBuffer, buffer);
-        }
-
+        
         //UnitySynth
         public void GetNext(float[] buffer)
         {//Call this to process the next part of audio and return it in raw form.
@@ -302,48 +292,7 @@ namespace CSharpSynth.Synthesis
             }
             return null;
         }
-        private void ConvertBuffer(float[,] from, byte[] to)
-        {
-            const int bytesPerSample = 2; //again we assume 16 bit audio
-            int channels = from.GetLength(0);
-            int bufferSize = from.GetLength(1);
-
-            // Make sure the buffer sizes are correct
-           //UnitySynth
-           if (!(to.Length == bufferSize * channels * bytesPerSample))
-                Debug.Log( "Buffer sizes are mismatched.");
-
-            for (int i = 0; i < bufferSize; i++)
-            {
-                for (int c = 0; c < channels; c++)
-                {
-                    // Apply master volume
-                    float floatSample = from[c, i] * MainVolume;
-
-                    // Clamp the value to the [-1.0..1.0] range
-                    floatSample = SynthHelper.Clamp(floatSample, -1.0f, 1.0f);
-
-                    // Convert it to the 16 bit [short.MinValue..short.MaxValue] range
-                    short shortSample = (short)(floatSample >= 0.0f ? floatSample * short.MaxValue : floatSample * short.MinValue * -1);
-
-                    // Calculate the right index based on the PCM format of interleaved samples per channel [L-R-L-R]
-                    int index = i * channels * bytesPerSample + c * bytesPerSample;
-
-                    // Store the 16 bit sample as two consecutive 8 bit values in the buffer with regard to endian-ness
-                    if (!BitConverter.IsLittleEndian)
-                    {
-                        to[index] = (byte)(shortSample >> 8);
-                        to[index + 1] = (byte)shortSample;
-                    }
-                    else
-                    {
-                        to[index] = (byte)shortSample;
-                        to[index + 1] = (byte)(shortSample >> 8);
-                    }
-                }
-            }
-        }
-
+        
         //UnitySynth
         private void ConvertBuffer(float[,] from, float[] to)
         {
